@@ -5,7 +5,9 @@
 
 ![libsodium](https://raw.github.com/jedisct1/libsodium/master/logo.png)
 ============
+
 Aim of this fork is to provide a CMake support for libsodium.
+
 ============
 
 Sodium is a new, easy-to-use software library for encryption,
