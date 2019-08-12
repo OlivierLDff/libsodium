@@ -2,11 +2,11 @@
 # 2019 - CMakeLists updated to libsodium 1.0.18.
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0)
-PROJECT(libsodium VERSION 1.0.18 LANGUAGES C CXX ASM)
+SET( SODIUM_TARGET "libsodium" CACHE STRING "Target Name" )
+PROJECT(${SODIUM_TARGET} VERSION 1.0.18 LANGUAGES C CXX ASM)
 SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
 
 INCLUDE(CheckCCompilerFlag)
-
 
 #----------------------------------------------------------
 ######################### OPTIONS #########################
@@ -40,7 +40,9 @@ ENDIF(MSVC)
 ######################### VERSION #########################
 #----------------------------------------------------------
 
-SET(VERSION 1.0.3)
+SET(SODIUM_VERSION "1.0.18" CACHE STRING "libsodium current version" )
+# VERSION is only here to configure version.h.in properly without changing source code
+SET(VERSION ${SODIUM_VERSION} )
 SET(SODIUM_LIBRARY_VERSION_MAJOR 10)
 SET(SODIUM_LIBRARY_VERSION_MINOR 3)
 SET(DLL_VERSION 24)
@@ -63,7 +65,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium/version.
 
 
 MESSAGE("---------------- DONE WITH OPTIONS. -----------------")
-MESSAGE("                                                           ")
+MESSAGE("                                                     ")
 
 #----------------------------------------------------------
 ###################### SYSTEM CHECKS ######################
@@ -774,40 +776,40 @@ IF(LIBSODIUM_BUILD_SHARED_LIBRARIES)
     INCLUDE (GenerateExportHeader)
     ENDIF( MSVC )
 
-    ADD_LIBRARY(libsodium SHARED ${libsodium_HEADERS} ${libsodium_SOURCE})
+    ADD_LIBRARY(${SODIUM_TARGET} SHARED ${libsodium_HEADERS} ${libsodium_SOURCE})
 
     IF( MSVC )
-    GENERATE_EXPORT_HEADER( libsodium
-        BASE_NAME libsodium
-        EXPORT_MACRO_NAME libsodium_EXPORT
-        EXPORT_FILE_NAME libsodium_Export.h
-        STATIC_DEFINE libsodium_BUILT_AS_STATIC
+    GENERATE_EXPORT_HEADER( ${SODIUM_TARGET}
+        BASE_NAME ${SODIUM_TARGET}
+        EXPORT_MACRO_NAME ${SODIUM_TARGET}_EXPORT
+        EXPORT_FILE_NAME ${SODIUM_TARGET}_Export.h
+        STATIC_DEFINE ${SODIUM_TARGET}_BUILT_AS_STATIC
     )
     ENDIF( MSVC )
     ADD_DEFINITIONS("-DSODIUM_DLL_EXPORT")
 ELSE(LIBSODIUM_BUILD_SHARED_LIBRARIES)
     ADD_DEFINITIONS("-DSODIUM_STATIC")
-    ADD_LIBRARY(libsodium STATIC ${libsodium_HEADERS} ${libsodium_SOURCE})
+    ADD_LIBRARY(${SODIUM_TARGET} STATIC ${libsodium_HEADERS} ${libsodium_SOURCE})
 ENDIF(LIBSODIUM_BUILD_SHARED_LIBRARIES)
 
-SET_TARGET_PROPERTIES(libsodium PROPERTIES
+SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-    PROJECT_LABEL "libsodium"
+    PROJECT_LABEL "${SODIUM_TARGET}"
 )
 
-TARGET_INCLUDE_DIRECTORIES(libsodium PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-TARGET_INCLUDE_DIRECTORIES(libsodium PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium)
-TARGET_INCLUDE_DIRECTORIES(libsodium PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include> $<INSTALL_INTERFACE:libsodium>)
-TARGET_INCLUDE_DIRECTORIES(libsodium PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium)
+TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium)
+TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include> $<INSTALL_INTERFACE:libsodium>)
+TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium)
 #For version.h.in to version.h
-TARGET_INCLUDE_DIRECTORIES(libsodium PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/libsodium/include/sodium)
+TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/libsodium/include/sodium)
 
 IF(NOT EMSCRIPTEN)
-    TARGET_LINK_LIBRARIES(libsodium PUBLIC librdrand)
+    TARGET_LINK_LIBRARIES(${SODIUM_TARGET} PUBLIC librdrand)
 ENDIF(NOT EMSCRIPTEN)
 
-TARGET_LINK_LIBRARIES(libsodium
+TARGET_LINK_LIBRARIES(${SODIUM_TARGET}
     PUBLIC libaesni
     PUBLIC libsse2
     PUBLIC libsse3
