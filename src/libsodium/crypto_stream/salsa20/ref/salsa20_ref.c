@@ -10,7 +10,7 @@ Public domain.
 #include "crypto_stream_salsa20.h"
 #include "utils.h"
 
-#include "../stream_salsa20.h"
+#include "crypto_stream/salsa20/stream_salsa20.h"
 #include "salsa20_ref.h"
 
 #ifndef HAVE_AMD64_ASM
@@ -42,7 +42,7 @@ stream_ref(unsigned char *c, unsigned long long clen, const unsigned char *n,
         u = 1;
         for (i = 8; i < 16; i++) {
             u += (unsigned int) in[i];
-            in[i] = u;
+            in[i] = (unsigned char)(u&0xFF);
             u >>= 8;
         }
         clen -= 64;
@@ -92,7 +92,7 @@ stream_ref_xor_ic(unsigned char *c, const unsigned char *m,
         u = 1;
         for (i = 8; i < 16; i++) {
             u += (unsigned int) in[i];
-            in[i] = u;
+            in[i] = (unsigned char)(u&0xFF);
             u >>= 8;
         }
         mlen -= 64;

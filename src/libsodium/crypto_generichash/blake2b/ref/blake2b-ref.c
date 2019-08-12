@@ -54,7 +54,7 @@ blake2b_set_lastblock(blake2b_state *S)
     if (S->last_node) {
         blake2b_set_lastnode(S);
     }
-    S->f[0] = -1;
+    S->f[0] = 0xFFFFFFFFFFFFFFFF;
     return 0;
 }
 

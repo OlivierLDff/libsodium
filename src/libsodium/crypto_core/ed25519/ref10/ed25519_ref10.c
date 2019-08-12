@@ -224,14 +224,14 @@ slide_vartime(signed char *r, const unsigned char *a)
             ribs = r[i + b] << b;
             cmp = r[i] + ribs;
             if (cmp <= 15) {
-                r[i] = cmp;
+                r[i] = (char)cmp;
                 r[i + b] = 0;
             } else {
                 cmp = r[i] - ribs;
                 if (cmp < -15) {
                     break;
                 }
-                r[i] = cmp;
+                r[i] = (char)cmp;
                 for (k = i + b; k < 256; ++k) {
                     if (! r[k]) {
                         r[k] = 1;
@@ -1002,7 +1002,7 @@ int
 ge25519_is_canonical(const unsigned char *s)
 {
     unsigned char c;
-    unsigned char d;
+    unsigned char _d;
     unsigned int  i;
 
     c = (s[31] & 0x7f) ^ 0x7f;
@@ -1010,9 +1010,9 @@ ge25519_is_canonical(const unsigned char *s)
         c |= s[i] ^ 0xff;
     }
     c = (((unsigned int) c) - 1U) >> 8;
-    d = (0xed - 1U - (unsigned int) s[0]) >> 8;
+    _d = (0xed - 1U - (unsigned int) s[0]) >> 8;
 
-    return 1 - (c & d & 1);
+    return 1 - (c & _d & 1);
 }
 
 int
@@ -1509,38 +1509,38 @@ sc25519_mul(unsigned char s[32], const unsigned char a[32], const unsigned char 
     s11 += carry10;
     s10 -= carry10 * ((uint64_t) 1L << 21);
 
-    s[0]  = s0 >> 0;
-    s[1]  = s0 >> 8;
-    s[2]  = (s0 >> 16) | (s1 * ((uint64_t) 1 << 5));
-    s[3]  = s1 >> 3;
-    s[4]  = s1 >> 11;
-    s[5]  = (s1 >> 19) | (s2 * ((uint64_t) 1 << 2));
-    s[6]  = s2 >> 6;
-    s[7]  = (s2 >> 14) | (s3 * ((uint64_t) 1 << 7));
-    s[8]  = s3 >> 1;
-    s[9]  = s3 >> 9;
-    s[10] = (s3 >> 17) | (s4 * ((uint64_t) 1 << 4));
-    s[11] = s4 >> 4;
-    s[12] = s4 >> 12;
-    s[13] = (s4 >> 20) | (s5 * ((uint64_t) 1 << 1));
-    s[14] = s5 >> 7;
-    s[15] = (s5 >> 15) | (s6 * ((uint64_t) 1 << 6));
-    s[16] = s6 >> 2;
-    s[17] = s6 >> 10;
-    s[18] = (s6 >> 18) | (s7 * ((uint64_t) 1 << 3));
-    s[19] = s7 >> 5;
-    s[20] = s7 >> 13;
-    s[21] = s8 >> 0;
-    s[22] = s8 >> 8;
-    s[23] = (s8 >> 16) | (s9 * ((uint64_t) 1 << 5));
-    s[24] = s9 >> 3;
-    s[25] = s9 >> 11;
-    s[26] = (s9 >> 19) | (s10 * ((uint64_t) 1 << 2));
-    s[27] = s10 >> 6;
-    s[28] = (s10 >> 14) | (s11 * ((uint64_t) 1 << 7));
-    s[29] = s11 >> 1;
-    s[30] = s11 >> 9;
-    s[31] = s11 >> 17;
+    s[0]  = (unsigned char)(s0 >> 0);
+    s[1]  = (unsigned char)(s0 >> 8);
+    s[2]  = (unsigned char)((s0 >> 16) | (s1 * ((uint64_t) 1 << 5)));
+    s[3]  = (unsigned char)(s1 >> 3);
+    s[4]  = (unsigned char)(s1 >> 11);
+    s[5]  = (unsigned char)((s1 >> 19) | (s2 * ((uint64_t) 1 << 2)));
+    s[6]  = (unsigned char)(s2 >> 6);
+    s[7]  = (unsigned char)((s2 >> 14) | (s3 * ((uint64_t) 1 << 7)));
+    s[8]  = (unsigned char)(s3 >> 1);
+    s[9]  = (unsigned char)(s3 >> 9);
+    s[10] = (unsigned char)((s3 >> 17) | (s4 * ((uint64_t) 1 << 4)));
+    s[11] = (unsigned char)(s4 >> 4);
+    s[12] = (unsigned char)(s4 >> 12);
+    s[13] = (unsigned char)((s4 >> 20) | (s5 * ((uint64_t) 1 << 1)));
+    s[14] = (unsigned char)(s5 >> 7);
+    s[15] = (unsigned char)((s5 >> 15) | (s6 * ((uint64_t) 1 << 6)));
+    s[16] = (unsigned char)(s6 >> 2);
+    s[17] = (unsigned char)(s6 >> 10);
+    s[18] = (unsigned char)((s6 >> 18) | (s7 * ((uint64_t) 1 << 3)));
+    s[19] = (unsigned char)(s7 >> 5);
+    s[20] = (unsigned char)(s7 >> 13);
+    s[21] = (unsigned char)(s8 >> 0);
+    s[22] = (unsigned char)(s8 >> 8);
+    s[23] = (unsigned char)((s8 >> 16) | (s9 * ((uint64_t) 1 << 5)));
+    s[24] = (unsigned char)(s9 >> 3);
+    s[25] = (unsigned char)(s9 >> 11);
+    s[26] = (unsigned char)((s9 >> 19) | (s10 * ((uint64_t) 1 << 2)));
+    s[27] = (unsigned char)(s10 >> 6);
+    s[28] = (unsigned char)((s10 >> 14) | (s11 * ((uint64_t) 1 << 7)));
+    s[29] = (unsigned char)(s11 >> 1);
+    s[30] = (unsigned char)(s11 >> 9);
+    s[31] = (unsigned char)(s11 >> 17);
 }
 
 /*
@@ -2674,7 +2674,7 @@ static int
 ristretto255_is_canonical(const unsigned char *s)
 {
     unsigned char c;
-    unsigned char d;
+    unsigned char _d;
     unsigned int  i;
 
     c = (s[31] & 0x7f) ^ 0x7f;
@@ -2682,9 +2682,9 @@ ristretto255_is_canonical(const unsigned char *s)
         c |= s[i] ^ 0xff;
     }
     c = (((unsigned int) c) - 1U) >> 8;
-    d = (0xed - 1U - (unsigned int) s[0]) >> 8;
+    _d = (0xed - 1U - (unsigned int) s[0]) >> 8;
 
-    return 1 - (((c & d) | s[0]) & 1);
+    return 1 - (((c & _d) | s[0]) & 1);
 }
 
 int
