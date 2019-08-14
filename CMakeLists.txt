@@ -599,28 +599,41 @@ IF(NOT SODIUM_ENABLE_MINIMAL_BUILD)
 
 ENDIF(NOT SODIUM_ENABLE_MINIMAL_BUILD)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/build")
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/build")
 
 IF(SODIUM_ENABLE_BLOCKING_RANDOM)
     ADD_DEFINITIONS("-DUSE_BLOCKING_RANDOM")
 ENDIF(SODIUM_ENABLE_BLOCKING_RANDOM)
+
+IF(MSVC)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /Oy- /Ob1 /O2 /Gy /wd4146 /wd4244 /wd4197 /wd4996 /wd4710 /wd4820 /wd4711")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /Oy- /Ob1 /O2 /Gy /wd4146 /wd4244 /wd4197 /wd4996 /wd4710 /wd4820 /wd4711")
+ENDIF()
 
 #----------------------------------------------------------
 ######################### LIBRDRAND #######################
 #----------------------------------------------------------
 
 IF(NOT EMSCRIPTEN)
-    SET(_LIBRDRAND_NAME librdrand)
-    ADD_LIBRARY(librdrand STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/randombytes/internal/randombytes_internal_random.c)
-    TARGET_INCLUDE_DIRECTORIES(librdrand PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium> $<INSTALL_INTERFACE:libsodium>)
+
+    SET(librdrand_HEADERS ${librdrand_HEADERS}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium/randombytes_sysrandom.h
+    )
+    SET(librdrand_SOURCE ${librdrand_SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/randombytes/internal/randombytes_internal_random.c
+    )
 ENDIF(NOT EMSCRIPTEN)
 
 #----------------------------------------------------------
 ######################### LIBAESNI ########################
 #----------------------------------------------------------
 
-ADD_LIBRARY(libaesni STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c)
-TARGET_INCLUDE_DIRECTORIES(libaesni PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium> $<INSTALL_INTERFACE:libsodium>)
+    SET(libaesni_HEADERS ${libaesni_HEADERS}
+    )
+    SET(libaesni_SOURCE ${libaesni_SOURCE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c
+    )
+SET(LIBAESNI_TARGET libaesni)
 
 #----------------------------------------------------------
 ######################### LIBSSE2 #########################
@@ -652,10 +665,6 @@ IF(NOT HAVE_AMD64_ASM_COMPILE)
     )
 ENDIF(NOT HAVE_AMD64_ASM_COMPILE)
 
-ADD_LIBRARY(libsse2 STATIC ${libsse2_SOURCE} ${libsse2_HEADERS})
-
-TARGET_INCLUDE_DIRECTORIES(libsse2 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium> $<INSTALL_INTERFACE:libsodium>)
-
 #----------------------------------------------------------
 ######################### LIBSSE3 #########################
 #----------------------------------------------------------
@@ -676,10 +685,6 @@ SET(libsse3_SOURCE ${libsse3_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-ssse3.c
 )
 
-ADD_LIBRARY(libsse3 STATIC ${libsse3_SOURCE} ${libsse3_HEADERS})
-
-TARGET_INCLUDE_DIRECTORIES(libsse3 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium> $<INSTALL_INTERFACE:libsodium>)
-
 #----------------------------------------------------------
 ######################### LIBSSE41 ########################
 #----------------------------------------------------------
@@ -692,10 +697,6 @@ SET(libsse41_SOURCE ${libsse41_SOURCE}
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-sse41.c
 )
-
-ADD_LIBRARY(libsse41 STATIC ${libsse41_SOURCE} ${libsse41_HEADERS})
-
-TARGET_INCLUDE_DIRECTORIES(libsse41 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium> $<INSTALL_INTERFACE:libsodium>)
 
 #----------------------------------------------------------
 ######################### LIBAVX2 #########################
@@ -720,10 +721,6 @@ SET(libavx2_SOURCE ${libavx2_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.c
 )
 
-ADD_LIBRARY(libavx2 STATIC ${libavx2_SOURCE} ${libavx2_HEADERS})
-
-TARGET_INCLUDE_DIRECTORIES(libavx2 PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium> $<INSTALL_INTERFACE:libsodium>)
-
 #----------------------------------------------------------
 ######################### LIBAVC512F ######################
 #----------------------------------------------------------
@@ -735,10 +732,6 @@ SET(libavx512f_HEADERS ${libavx512f_HEADERS}
 SET(libavx512f_SOURCE ${libavx512f_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_pwhash/argon2/argon2-fill-block-avx512f.c
 )
-
-ADD_LIBRARY(libavx512f STATIC ${libavx512f_SOURCE} ${libavx512f_HEADERS})
-
-TARGET_INCLUDE_DIRECTORIES(libavx512f PRIVATE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium> $<INSTALL_INTERFACE:libsodium>)
 
 #----------------------------------------------------------
 ######################### LIBSODIUM #######################
@@ -777,7 +770,24 @@ IF(SODIUM_BUILD_SHARED)
     INCLUDE (GenerateExportHeader)
     ENDIF( MSVC )
 
-    ADD_LIBRARY(${SODIUM_TARGET} SHARED ${libsodium_HEADERS} ${libsodium_SOURCE})
+    ADD_LIBRARY(${SODIUM_TARGET} SHARED
+        ${libsodium_HEADERS}
+        ${libsodium_SOURCE}
+        ${librdrand_HEADERS}
+        ${librdrand_SOURCE}
+        ${libaesni_HEADERS}
+        ${libaesni_SOURCE}
+        ${libsse2_HEADERS}
+        ${libsse2_SOURCE}
+        ${libsse3_HEADERS}
+        ${libsse3_SOURCE}
+        ${libsse41_HEADERS}
+        ${libsse41_SOURCE}
+        ${libavx2_HEADERS}
+        ${libavx2_SOURCE}
+        ${libavx512f_HEADERS}
+        ${libavx512f_SOURCE}
+        )
 
     IF( MSVC )
     GENERATE_EXPORT_HEADER( ${SODIUM_TARGET}
@@ -787,11 +797,28 @@ IF(SODIUM_BUILD_SHARED)
         STATIC_DEFINE ${SODIUM_TARGET}_BUILT_AS_STATIC
     )
     ENDIF( MSVC )
-    ADD_DEFINITIONS("-DSODIUM_DLL_EXPORT")
+    TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} PRIVATE "-DSODIUM_DLL_EXPORT")
 ELSE(SODIUM_BUILD_SHARED)
     MESSAGE(STATUS "Build static libsodium")
     ADD_DEFINITIONS("-DSODIUM_STATIC")
-    ADD_LIBRARY(${SODIUM_TARGET} STATIC ${libsodium_HEADERS} ${libsodium_SOURCE})
+    ADD_LIBRARY(${SODIUM_TARGET} STATIC
+        ${libsodium_HEADERS}
+        ${libsodium_SOURCE}
+        ${librdrand_HEADERS}
+        ${librdrand_SOURCE}
+        ${libaesni_HEADERS}
+        ${libaesni_SOURCE}
+        ${libsse2_HEADERS}
+        ${libsse2_SOURCE}
+        ${libsse3_HEADERS}
+        ${libsse3_SOURCE}
+        ${libsse41_HEADERS}
+        ${libsse41_SOURCE}
+        ${libavx2_HEADERS}
+        ${libavx2_SOURCE}
+        ${libavx512f_HEADERS}
+        ${libavx512f_SOURCE}
+        )
 ENDIF(SODIUM_BUILD_SHARED)
 
 SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES
@@ -806,19 +833,6 @@ TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CUR
 TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium)
 #For version.h.in to version.h
 TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/libsodium/include/sodium)
-
-IF(NOT EMSCRIPTEN)
-    TARGET_LINK_LIBRARIES(${SODIUM_TARGET} PUBLIC librdrand)
-ENDIF(NOT EMSCRIPTEN)
-
-TARGET_LINK_LIBRARIES(${SODIUM_TARGET}
-    PUBLIC libaesni
-    PUBLIC libsse2
-    PUBLIC libsse3
-    PUBLIC libsse41
-    PUBLIC libavx2
-    PUBLIC libavx512f
-)
 
 #----------------------------------------------------------
 ########################## TESTS ##########################
@@ -1027,14 +1041,7 @@ configure_package_config_file(
 #   * header location after install: <prefix>/include/foo/Bar.hpp
 #   * headers can be included by C++ code `#include <foo/Bar.hpp>`
 install(
-    TARGETS libsodium
-        ${_LIBRDRAND_NAME}
-        libaesni
-        libsse2
-        libsse3
-        libsse41
-        libavx2
-        libavx512f
+    TARGETS ${SODIUM_TARGET}
     EXPORT "${targets_export_name}"
     LIBRARY DESTINATION "lib"
     ARCHIVE DESTINATION "lib"
