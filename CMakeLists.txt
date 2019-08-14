@@ -562,7 +562,6 @@ SET(libsodium_SOURCE ${libsodium_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/sodium/version.c
 )
 
-
 #----------------------------------------------------------
 ################### MINIMAL BUILD CHECK ###################
 #----------------------------------------------------------
@@ -833,6 +832,9 @@ TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CUR
 TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium)
 #For version.h.in to version.h
 TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/libsodium/include/sodium)
+
+# Avoid liblibsodium on darwin for example.
+SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES PREFIX "")
 
 #----------------------------------------------------------
 ########################## TESTS ##########################
