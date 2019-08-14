@@ -14,26 +14,26 @@ INCLUDE(CheckCCompilerFlag)
 
 MESSAGE("---------------- LIBSODIUM OPTIONS. ----------------")
 
-OPTION(LIBSODIUM_BUILD_SHARED_LIBRARIES "Build the library dynamically (ON/TRUE) or statically (OFF/FALSE).")
-OPTION(ENABLE_BLOCKING_RANDOM           "Enable this switch only if /dev/urandom is totally broken on the target platform.")
-OPTION(ENABLE_MINIMAL_BUILD             "Only compile the minimum set of functions required for the high-level API.")
-OPTION(ENABLE_TESTS                     "Enable testing.")
-OPTION(DISABLE_ASM                      "Disable AMD64 assembly implementations.")
-OPTION(DISABLE_PIE                      "Do not produce position independent executables.")
-OPTION(DISABLE_SSP                      "Do not compile with -fstack-protector.")
-OPTION(USE_CONTROL_FLOW_GUARD           "Enable /guard:cf for msvc")
-OPTION(USE_QSPECTRE                     "Enable /Qspectre options for msvc.")
+OPTION(SODIUM_BUILD_SHARED           "Build the library dynamically (ON/TRUE) or statically (OFF/FALSE).")
+OPTION(SODIUM_ENABLE_BLOCKING_RANDOM "Enable this switch only if /dev/urandom is totally broken on the target platform.")
+OPTION(SODIUM_ENABLE_MINIMAL_BUILD   "Only compile the minimum set of functions required for the high-level API.")
+OPTION(SODIUM_ENABLE_TESTS           "Enable testing.")
+OPTION(SODIUM_DISABLE_ASM            "Disable AMD64 assembly implementations.")
+OPTION(SODIUM_DISABLE_PIE            "Do not produce position independent executables.")
+OPTION(SODIUM_DISABLE_SSP            "Do not compile with -fstack-protector.")
+OPTION(SODIUM_USE_CONTROL_FLOW_GUARD "Enable /guard:cf for msvc")
+OPTION(SODIUM_USE_QSPECTRE           "Enable /Qspectre options for msvc.")
 
-MESSAGE(STATUS "LIBSODIUM_BUILD_SHARED_LIBRARIES : " ${LIBSODIUM_BUILD_SHARED_LIBRARIES})
-MESSAGE(STATUS "ENABLE_BLOCKING_RANDOM           : " ${ENABLE_BLOCKING_RANDOM})
-MESSAGE(STATUS "ENABLE_MINIMAL_BUILD             : " ${ENABLE_MINIMAL_BUILD})
-MESSAGE(STATUS "ENABLE_TESTS                     : " ${ENABLE_TESTS})
-MESSAGE(STATUS "DISABLE_ASM                      : " ${DISABLE_ASM})
-MESSAGE(STATUS "DISABLE_PIE                      : " ${DISABLE_PIE})
-MESSAGE(STATUS "DISABLE_SSP                      : " ${DISABLE_SSP})
+MESSAGE(STATUS "SODIUM_BUILD_SHARED           : " ${SODIUM_BUILD_SHARED})
+MESSAGE(STATUS "SODIUM_ENABLE_BLOCKING_RANDOM : " ${SODIUM_ENABLE_BLOCKING_RANDOM})
+MESSAGE(STATUS "SODIUM_ENABLE_MINIMAL_BUILD   : " ${SODIUM_ENABLE_MINIMAL_BUILD})
+MESSAGE(STATUS "SODIUM_ENABLE_TESTS           : " ${SODIUM_ENABLE_TESTS})
+MESSAGE(STATUS "SODIUM_DISABLE_ASM            : " ${SODIUM_DISABLE_ASM})
+MESSAGE(STATUS "SODIUM_DISABLE_PIE            : " ${SODIUM_DISABLE_PIE})
+MESSAGE(STATUS "SODIUM_DISABLE_SSP            : " ${SODIUM_DISABLE_SSP})
 IF(MSVC)
-    MESSAGE(STATUS "USE_CONTROL_FLOW_GUARD           : " ${USE_CONTROL_FLOW_GUARD})
-    MESSAGE(STATUS "USE_QSPECTRE                     : " ${USE_QSPECTRE})
+    MESSAGE(STATUS "SODIUM_USE_CONTROL_FLOW_GUARD : " ${SODIUM_USE_CONTROL_FLOW_GUARD})
+    MESSAGE(STATUS "SODIUM_USE_QSPECTRE           : " ${SODIUM_USE_QSPECTRE})
 ENDIF(MSVC)
 
 #----------------------------------------------------------
@@ -94,7 +94,7 @@ ENDIF(${BIG_ENDIAN})
 
 
 IF(EMSCRIPTEN)
-    SET(DISABLE_ASM ON)
+    SET(SODIUM_DISABLE_ASM ON)
     MESSAGE("Compiling to javascript, disabling asm implementations.")
 ELSE(EMSCRIPTEN)
     SET(libsodium_SOURCE ${libsodium_SOURCE}
@@ -104,7 +104,7 @@ ENDIF(EMSCRIPTEN)
 
 
 IF(MSYS OR MINGW OR CYGWIN)
-    SET(DISABLE_PIE ON)
+    SET(SODIUM_DISABLE_PIE ON)
 ENDIF()
 
 #TI mode check
@@ -228,7 +228,7 @@ ENDIF(IS_CPUID_INSTRUCTION_AVAILABLE_COMPILE)
 
 
 #Have AMD64 ASM check
-IF(DISABLE_ASM)
+IF(SODIUM_DISABLE_ASM)
 
     MESSAGE("AMD64 ASM implementations have been disabled.")
 
@@ -240,7 +240,7 @@ IF(DISABLE_ASM)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/ref/salsa20_ref.c
     )
 
-ELSE(DISABLE_ASM)
+ELSE(SODIUM_DISABLE_ASM)
 
     IF(ASSEMBLER_AVAILABLE)
 
@@ -284,7 +284,7 @@ ELSE(DISABLE_ASM)
 
         ENDIF(HAVE_AMD64_ASM_COMPILE)
     ENDIF(ASSEMBLER_AVAILABLE)
-ENDIF(DISABLE_ASM)
+ENDIF(SODIUM_DISABLE_ASM)
 
 
 MESSAGE("---------------- DONE WITH SYSTEM CHECKS. -----------------")
@@ -347,9 +347,9 @@ ELSE(NOT (MSYS OR MINGW OR CYGWIN))
 ENDIF(NOT (MSYS OR MINGW OR CYGWIN))
 
 #Check if -fPIE is available.
-IF(NOT DISABLE_PIE)
+IF(NOT SODIUM_DISABLE_PIE)
     CHECK_COMPILER_FLAG(fPIE)
-ENDIF(NOT DISABLE_PIE)
+ENDIF(NOT SODIUM_DISABLE_PIE)
 
 #Check if -Wall is available.
 CHECK_COMPILER_FLAG(Wall)
@@ -370,10 +370,10 @@ IF(NOT IS_fno-strict-overflow_AVAILABLE)
     CHECK_COMPILER_FLAG(fwrapv)
 ENDIF()
 
-IF(NOT DISABLE_SSP)
+IF(NOT SODIUM_DISABLE_SSP)
     #Check if -fstack-protector is available.
     CHECK_COMPILER_FLAG(fstack-protector)
-ENDIF(NOT DISABLE_SSP)
+ENDIF(NOT SODIUM_DISABLE_SSP)
 
 #Check if -Winit-self is available.
 CHECK_COMPILER_FLAG(Winit-self)
@@ -567,7 +567,7 @@ SET(libsodium_SOURCE ${libsodium_SOURCE}
 ################### MINIMAL BUILD CHECK ###################
 #----------------------------------------------------------
 
-IF(NOT ENABLE_MINIMAL_BUILD)
+IF(NOT SODIUM_ENABLE_MINIMAL_BUILD)
 
     SET(libsodium_HEADERS ${libsodium_HEADERS}
     )
@@ -597,13 +597,13 @@ IF(NOT ENABLE_MINIMAL_BUILD)
         ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/xchacha20/stream_xchacha20.c
     )
 
-ENDIF(NOT ENABLE_MINIMAL_BUILD)
+ENDIF(NOT SODIUM_ENABLE_MINIMAL_BUILD)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/build")
 
-IF(ENABLE_BLOCKING_RANDOM)
+IF(SODIUM_ENABLE_BLOCKING_RANDOM)
     ADD_DEFINITIONS("-DUSE_BLOCKING_RANDOM")
-ENDIF(ENABLE_BLOCKING_RANDOM)
+ENDIF(SODIUM_ENABLE_BLOCKING_RANDOM)
 
 #----------------------------------------------------------
 ######################### LIBRDRAND #######################
@@ -634,11 +634,11 @@ SET(libsse2_SOURCE ${libsse2_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_onetimeauth/poly1305/sse2/poly1305_sse2.c
 )
 
-IF(NOT ENABLE_MINIMAL_BUILD)
+IF(NOT SODIUM_ENABLE_MINIMAL_BUILD)
     SET(libsse2_SOURCE ${libsse2_SOURCE}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_pwhash/scryptsalsa208sha256/sse/pwhash_scryptsalsa208sha256_sse.c
     )
-ENDIF(NOT ENABLE_MINIMAL_BUILD)
+ENDIF(NOT SODIUM_ENABLE_MINIMAL_BUILD)
 
 IF(NOT HAVE_AMD64_ASM_COMPILE)
     SET(libsse2_HEADERS ${libsse2_HEADERS}
@@ -758,20 +758,21 @@ foreach(_source IN ITEMS ${libsodium_SOURCE})
 endforeach()
 
 if (MSVC AND (MSVC_VERSION GREATER 1900))
-    if (${USE_CONTROL_FLOW_GUARD})
+    if (${SODIUM_USE_CONTROL_FLOW_GUARD})
         MESSAGE(STATUS "Setting CONTROL FLOW GUARD")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /guard:cf")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /guard:cf")
         SET(CMAKE_EXE_LINKER_FLAGS  "/guard:cf /DYNAMICBASE")
     endif()
-    if (${USE_QSPECTRE})
+    if (${SODIUM_USE_QSPECTRE})
         MESSAGE(STATUS "Setting QSPECTRE")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Qspectre")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qspectre")
     endif()
 endif()
 
-IF(LIBSODIUM_BUILD_SHARED_LIBRARIES)
+IF(SODIUM_BUILD_SHARED)
+    MESSAGE(STATUS "Build shared libsodium")
     IF( MSVC )
     INCLUDE (GenerateExportHeader)
     ENDIF( MSVC )
@@ -787,10 +788,11 @@ IF(LIBSODIUM_BUILD_SHARED_LIBRARIES)
     )
     ENDIF( MSVC )
     ADD_DEFINITIONS("-DSODIUM_DLL_EXPORT")
-ELSE(LIBSODIUM_BUILD_SHARED_LIBRARIES)
+ELSE(SODIUM_BUILD_SHARED)
+    MESSAGE(STATUS "Build static libsodium")
     ADD_DEFINITIONS("-DSODIUM_STATIC")
     ADD_LIBRARY(${SODIUM_TARGET} STATIC ${libsodium_HEADERS} ${libsodium_SOURCE})
-ENDIF(LIBSODIUM_BUILD_SHARED_LIBRARIES)
+ENDIF(SODIUM_BUILD_SHARED)
 
 SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
@@ -822,7 +824,7 @@ TARGET_LINK_LIBRARIES(${SODIUM_TARGET}
 ########################## TESTS ##########################
 #----------------------------------------------------------
 
-IF(${ENABLE_TESTS})
+IF(${SODIUM_ENABLE_TESTS})
 
     ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/test/default)
     ENABLE_TESTING()
@@ -980,7 +982,7 @@ IF(${ENABLE_TESTS})
     SET_TESTS_PROPERTIES(verify1_test                 PROPERTIES DEPENDS verify1)
     SET_TESTS_PROPERTIES(xchacha20_test               PROPERTIES DEPENDS xchacha20)
 
-ENDIF(${ENABLE_TESTS})
+ENDIF(${SODIUM_ENABLE_TESTS})
 
 ####
 # Installation (https://github.com/novocodev/libsodium-CMake)
