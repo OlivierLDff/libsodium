@@ -1029,8 +1029,9 @@ write_basic_package_version_file(
 # Use variables:
 #   * targets_export_name
 #   * PROJECT_NAME
+MESSAGE(STATUS "Configure Config.cmake.in file located in ${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 configure_package_config_file(
-    "cmake/Config.cmake.in"
+	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in"
     "${project_config}"
     INSTALL_DESTINATION "${config_install_dir}"
 )
@@ -1055,7 +1056,7 @@ install(
 #   * Source/foo/Bar.hpp -> <prefix>/include/foo/Bar.hpp
 #   * Source/foo/Baz.hpp -> <prefix>/include/foo/Baz.hpp
 install(
-    DIRECTORY "src/libsodium/include/"
+	DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/"
     DESTINATION "${include_install_dir}/libsodium"
     FILES_MATCHING PATTERN "*.h"
 )
