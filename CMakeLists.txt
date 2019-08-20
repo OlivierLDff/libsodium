@@ -1073,7 +1073,7 @@ SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES FOLDER ${SODIUM_FOLDER_PREFIX}
 SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES PREFIX "")
 
 # The build system was properly configured
-TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} "-DCONFIGURED=1")
+TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} PRIVATE "-DCONFIGURED=1")
 
 # ┌──────────────────────────────────────────────────────────────────┐
 # │                            TESTS                                 │
