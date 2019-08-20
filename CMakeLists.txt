@@ -441,7 +441,7 @@ CHECK_COMPILER_FLAG(Wswitch-enum)
 #Check if -Wvariable-dec is available.
 CHECK_COMPILER_FLAG(Wvariable-decl)
 
-IF(${CMAKE_SYSTEM_NAME} NOT STREQUAL "Darwin")
+IF(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
     #Check if -Wl,-z,relro is available.
     CHECK_COMPILER_FLAG(Wl,-z,relro)
@@ -452,7 +452,7 @@ IF(${CMAKE_SYSTEM_NAME} NOT STREQUAL "Darwin")
     #Check if -Wl,-z,noexecstack is available.
     CHECK_COMPILER_FLAG(Wl,-z,noexecstack)
 
-ENDIF(${CMAKE_SYSTEM_NAME} NOT STREQUAL "Darwin")
+ENDIF(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
 #Check if -Wl,--verbose is available and enable it.
 #CHECK_COMPILER_FLAG(Wl,--verbose)
