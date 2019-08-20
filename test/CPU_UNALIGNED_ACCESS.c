@@ -2,7 +2,7 @@
 # error data alignment is required
 #endif
 
-void main()
+int main()
 {
-
+	return 0;
 }

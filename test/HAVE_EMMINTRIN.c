@@ -4,8 +4,10 @@
 #endif
 #include <emmintrin.h>
 
-void main()
+int main()
 {
     __m128d x = _mm_setzero_pd();
     __m128i z = _mm_srli_epi64(_mm_setzero_si128(), 26);
+
+    return 0;
 }

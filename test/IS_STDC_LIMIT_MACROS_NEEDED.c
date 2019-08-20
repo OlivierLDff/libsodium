@@ -1,8 +1,10 @@
 #include <limits.h>
 #include <stdint.h>
 
-void main()
+int main()
 {
     (void) SIZE_MAX;
     (void) UINT64_MAX;
+
+    return 0;
 }

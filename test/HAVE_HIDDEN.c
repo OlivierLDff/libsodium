@@ -1,4 +1,4 @@
-void main()
+int main()
 {
     __asm__ __volatile__ (".hidden dummy_symbol \n"
         ".hidden _dummy_symbol \n"
@@ -8,4 +8,6 @@ void main()
         "_dummy_symbol: \n"
         "    nop \n"
         );
+
+    return 0;
 }

@@ -17,12 +17,16 @@ typedef unsigned __int128 uint128_t;
 #else
 typedef unsigned uint128_t __attribute__((mode(TI)));
 #endif
+
 void fcontract(uint128_t *t) {
   *t += 0x8000000000000 - 1;
   *t *= *t;
   *t >>= 84;
 }
 
-void main(){
+int main()
+{
 	(void) fcontract;
+
+	return 0;
 }

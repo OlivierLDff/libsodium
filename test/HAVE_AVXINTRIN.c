@@ -1,7 +1,9 @@
 #pragma GCC target("avx")
 #include <immintrin.h>
 
-void main()
+int main()
 {
     _mm256_zeroall();
+
+    return 0;
 }

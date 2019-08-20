@@ -1,7 +1,9 @@
 #pragma GCC target("mmx")
 #include <mmintrin.h>
 
-void main()
+int main()
 {
-  __m64 x = _mm_setzero_si64();
+    __m64 x = _mm_setzero_si64();
+
+    return 0;
 }

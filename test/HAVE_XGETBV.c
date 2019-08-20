@@ -1,6 +1,8 @@
 #include <intrin.h>
 
-void main()
+int main()
 {
     (void) _xgetbv(0);
+
+    return 0;
 }

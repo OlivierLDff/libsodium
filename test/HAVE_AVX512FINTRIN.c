@@ -1,7 +1,7 @@
 #pragma GCC target("avx512f")
 #include <immintrin.h>
 
-void main()
+int main()
 {
     #ifndef __AVX512F__
     # error No AVX512 support
@@ -17,4 +17,6 @@ void main()
 
     __m512i x = _mm512_setzero_epi32();
     __m512i y = _mm512_permutexvar_epi64(_mm512_setr_epi64(0, 1, 4, 5, 2, 3, 6, 7), x);
+
+    return 0;
 }

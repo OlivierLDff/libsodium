@@ -4,7 +4,7 @@
 __attribute__((weak)) void __dummy(void *x) { }
 void f(void *x) { __dummy(x); }
 
-void main()
+int main()
 {
-
+	return 0;
 }
