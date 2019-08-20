@@ -425,9 +425,6 @@ ELSE(MSVC)
     #Check if -Wbad-function-cast is available.
     CHECK_COMPILER_FLAG(Wbad-function-cast)
 
-    #Check if -Wcast-align is available.
-    CHECK_COMPILER_FLAG(Wcast-align)
-
     #Check if -Wcast-qual is available.
     CHECK_COMPILER_FLAG(Wcast-qual)
 
