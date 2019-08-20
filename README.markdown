@@ -40,13 +40,13 @@ cmake ..
 CMake support multiple options.
 
 - **SODIUM_TARGET**: The name of the target that will be generated. *Default "libsodium"*.
-- **SODIUM_BUILD_SHARED** : "Build the library dynamically (ON/TRUE) or statically (OFF/FALSE)."
+- **SODIUM_BUILD_SHARED** : Build the library dynamically (ON/TRUE) or statically (OFF/FALSE).
 - **SODIUM_FOLDER_PREFIX**: Prefix folder for all libsodium generated targets in generated project (only decorative). *Default "libsodium".*
-- **SODIUM_ENABLE_BLOCKING_RANDOM** : "Enable this switch only if /dev/urandom is totally broken on the target platform."
-- **SODIUM_ENABLE_MINIMAL_BUILD** : "Only compile the minimum set of functions required for the high-level API."
-- **SODIUM_DISABLE_ASM** : "Disable AMD64 assembly implementations."
-- **SODIUM_DISABLE_PIE** : "Do not produce position independent executables."
-- **SODIUM_DISABLE_SSP** : "Do not compile with -fstack-protector."
+- **SODIUM_ENABLE_BLOCKING_RANDOM** : Enable this switch only if /dev/urandom is totally broken on the target platform.
+- **SODIUM_ENABLE_MINIMAL_BUILD** : Only compile the minimum set of functions required for the high-level API.
+- **SODIUM_DISABLE_ASM** : Disable AMD64 assembly implementations.
+- **SODIUM_DISABLE_PIE** : Do not produce position independent executables.
+- **SODIUM_DISABLE_SSP** : Do not compile with -fstack-protector.
 - **SODIUM_ENABLE_TESTS**: Enable the tests. This will create a target `${SODIUM_TESTS_PREFIX}_test`. *Default "OFF". [ON/OFF]*.
 - **SODIUM_TESTS_PREFIX**: Prefix for every tests to avoid naming clashes in superbuild. *Default "libsodium".*
 - **SODIUM_ENABLE_INSTALL**: Enable install target. *Default "OFF". [ON/OFF]*.
