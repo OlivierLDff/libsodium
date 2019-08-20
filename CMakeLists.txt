@@ -1,46 +1,21 @@
 # 2014/2015 - Initial Work Cyberunner23/Isammoc/march44/novocodev
 # 2019 - CMakeLists updated to libsodium 1.0.18.
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0)
-SET( SODIUM_TARGET "libsodium" CACHE STRING "Target Name" )
-PROJECT(${SODIUM_TARGET} VERSION 1.0.18 LANGUAGES C CXX ASM)
-SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                       CMAKE PROPERTIES                           │
+# └──────────────────────────────────────────────────────────────────┘
 
-INCLUDE(CheckCCompilerFlag)
+CMAKE_MINIMUM_REQUIRED( VERSION 3.11 )
 
-#----------------------------------------------------------
-######################### OPTIONS #########################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                       PROJECT SETTINGS                           │
+# └──────────────────────────────────────────────────────────────────┘
 
-MESSAGE("---------------- LIBSODIUM OPTIONS. ----------------")
+# General
+SET( SODIUM_PROJECT             "libsodium" CACHE STRING "Project Name")
+SET( SODIUM_TARGET              ${SODIUM_PROJECT} CACHE STRING "libsodium library name" )
 
-OPTION(SODIUM_BUILD_SHARED           "Build the library dynamically (ON/TRUE) or statically (OFF/FALSE).")
-OPTION(SODIUM_ENABLE_BLOCKING_RANDOM "Enable this switch only if /dev/urandom is totally broken on the target platform.")
-OPTION(SODIUM_ENABLE_MINIMAL_BUILD   "Only compile the minimum set of functions required for the high-level API.")
-OPTION(SODIUM_ENABLE_TESTS           "Enable testing.")
-OPTION(SODIUM_DISABLE_ASM            "Disable AMD64 assembly implementations.")
-OPTION(SODIUM_DISABLE_PIE            "Do not produce position independent executables.")
-OPTION(SODIUM_DISABLE_SSP            "Do not compile with -fstack-protector.")
-OPTION(SODIUM_USE_CONTROL_FLOW_GUARD "Enable /guard:cf for msvc")
-OPTION(SODIUM_USE_QSPECTRE           "Enable /Qspectre options for msvc.")
-
-MESSAGE(STATUS "SODIUM_BUILD_SHARED           : " ${SODIUM_BUILD_SHARED})
-MESSAGE(STATUS "SODIUM_ENABLE_BLOCKING_RANDOM : " ${SODIUM_ENABLE_BLOCKING_RANDOM})
-MESSAGE(STATUS "SODIUM_ENABLE_MINIMAL_BUILD   : " ${SODIUM_ENABLE_MINIMAL_BUILD})
-MESSAGE(STATUS "SODIUM_ENABLE_TESTS           : " ${SODIUM_ENABLE_TESTS})
-MESSAGE(STATUS "SODIUM_DISABLE_ASM            : " ${SODIUM_DISABLE_ASM})
-MESSAGE(STATUS "SODIUM_DISABLE_PIE            : " ${SODIUM_DISABLE_PIE})
-MESSAGE(STATUS "SODIUM_DISABLE_SSP            : " ${SODIUM_DISABLE_SSP})
-IF(MSVC)
-    MESSAGE(STATUS "SODIUM_USE_CONTROL_FLOW_GUARD : " ${SODIUM_USE_CONTROL_FLOW_GUARD})
-    MESSAGE(STATUS "SODIUM_USE_QSPECTRE           : " ${SODIUM_USE_QSPECTRE})
-ENDIF(MSVC)
-
-#----------------------------------------------------------
-######################### VERSION #########################
-#----------------------------------------------------------
-
-SET(SODIUM_VERSION "1.0.18" CACHE STRING "libsodium current version" )
+SET(SODIUM_VERSION              "1.0.18" CACHE STRING "libsodium current version" FORCE )
 # VERSION is only here to configure version.h.in properly without changing source code
 SET(VERSION ${SODIUM_VERSION} )
 SET(SODIUM_LIBRARY_VERSION_MAJOR 10)
@@ -60,16 +35,79 @@ SET(SODIUM_LIBRARY_VERSION "26:0:3")
 #                     |           set to zero if current is incremented
 #                     +- increment if interfaces have been added, removed or changed
 
+SET( SODIUM_BUILD_SHARED          OFF CACHE BOOL "Build as a shared library (ON) or a static library (OFF)" )
+SET( SODIUM_FOLDER_PREFIX         ${SODIUM_PROJECT} CACHE STRING "Prefix folder for all libsodium generated targets in generated project (only decorative)" )
+
+# General
+SET(SODIUM_ENABLE_BLOCKING_RANDOM OFF CACHE BOOL "Enable this switch only if /dev/urandom is totally broken on the target platform.")
+SET(SODIUM_ENABLE_MINIMAL_BUILD   OFF CACHE BOOL "Only compile the minimum set of functions required for the high-level API.")
+
+SET(SODIUM_DISABLE_ASM            OFF CACHE BOOL "Disable AMD64 assembly implementations.")
+SET(SODIUM_DISABLE_PIE            OFF CACHE BOOL "Do not produce position independent executables.")
+SET(SODIUM_DISABLE_SSP            OFF CACHE BOOL "Do not compile with -fstack-protector.")
+
+SET(SODIUM_USE_CONTROL_FLOW_GUARD OFF CACHE BOOL "Enable /guard:cf for msvc")
+SET(SODIUM_USE_QSPECTRE           OFF CACHE BOOL "Enable /Qspectre options for msvc.")
+
+# Tests
+SET( SODIUM_ENABLE_TESTS          OFF CACHE BOOL "Create or not a target for test (compatible with CTests)" )
+SET( SODIUM_TESTS_PREFIX          ${SODIUM_PROJECT} CACHE STRING "Prefix for all libsodium tests" )
+
+# Install
+SET( SODIUM_ENABLE_INSTALL        OFF CACHE BOOL "Create or not a target for install" )
+SET( SODIUM_INSTALL_PREFIX        ${SODIUM_PROJECT} CACHE STRING "Prefix for all libsodium headers in the install folder" )
+
+# Create the project
+PROJECT(${SODIUM_PROJECT} VERSION ${SODIUM_VERSION} LANGUAGES C CXX ASM)
+# We use folder, only for decoration
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+# CMake script folder
+SET(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+# We configure the version.h file inside the source directory (ignore in .gitignore) for the build process to find the version.h
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium/version.h)
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/src/libsodium/include/sodium/version.h)
+
+MESSAGE("---------------- LIBSODIUM OPTIONS. ----------------")
+
+#General
+MESSAGE(STATUS "SODIUM_PROJECT                : " ${SODIUM_PROJECT})
+MESSAGE(STATUS "SODIUM_TARGET                 : " ${SODIUM_TARGET})
+MESSAGE(STATUS "SODIUM_VERSION                : " ${SODIUM_VERSION})
+MESSAGE(STATUS "SODIUM_BUILD_SHARED           : " ${SODIUM_BUILD_SHARED})
+MESSAGE(STATUS "SODIUM_FOLDER_PREFIX          : " ${SODIUM_FOLDER_PREFIX})
+
+MESSAGE(STATUS "SODIUM_ENABLE_BLOCKING_RANDOM : " ${SODIUM_ENABLE_BLOCKING_RANDOM})
+MESSAGE(STATUS "SODIUM_ENABLE_MINIMAL_BUILD   : " ${SODIUM_ENABLE_MINIMAL_BUILD})
+
+MESSAGE(STATUS "SODIUM_DISABLE_ASM            : " ${SODIUM_DISABLE_ASM})
+MESSAGE(STATUS "SODIUM_DISABLE_PIE            : " ${SODIUM_DISABLE_PIE})
+MESSAGE(STATUS "SODIUM_DISABLE_SSP            : " ${SODIUM_DISABLE_SSP})
+
+# MSVC
+IF(MSVC)
+MESSAGE(STATUS "SODIUM_USE_CONTROL_FLOW_GUARD : " ${SODIUM_USE_CONTROL_FLOW_GUARD})
+MESSAGE(STATUS "SODIUM_USE_QSPECTRE           : " ${SODIUM_USE_QSPECTRE})
+ENDIF(MSVC)
+
+# Tests
+MESSAGE(STATUS "SODIUM_ENABLE_TESTS           : " ${SODIUM_ENABLE_TESTS})
+IF(SODIUM_ENABLE_TESTS)
+MESSAGE(STATUS "SODIUM_TESTS_PREFIX           : " ${SODIUM_TESTS_PREFIX})
+ENDIF(SODIUM_ENABLE_TESTS)
+
+# Install
+MESSAGE(STATUS "SODIUM_ENABLE_INSTALL         : " ${SODIUM_ENABLE_INSTALL})
+IF(SODIUM_ENABLE_INSTALL)
+MESSAGE(STATUS "SODIUM_INSTALL_PREFIX         : " ${SODIUM_INSTALL_PREFIX})
+ENDIF(SODIUM_ENABLE_INSTALL)
 
 
 MESSAGE("---------------- DONE WITH OPTIONS. -----------------")
 MESSAGE("                                                     ")
 
-#----------------------------------------------------------
-###################### SYSTEM CHECKS ######################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                        SYSTEM CHECKS                             │
+# └──────────────────────────────────────────────────────────────────┘
 
 MESSAGE("---------------- PERFORMING SYSTEM CHECKS. ----------------")
 
@@ -85,17 +123,17 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 IF(${BIG_ENDIAN})
     SET(IS_BIG_ENDIAN ON)
     ADD_DEFINIIONS("-DNATIVE_BIG_ENDIAN=1")
-    MESSAGE("System is in Big Endian.")
+    MESSAGE(STATUS "System is in Big Endian.")
 ELSE(${BIG_ENDIAN})
     SET(IS_BIG_ENDIAN OFF)
     ADD_DEFINITIONS("-DNATIVE_LITTLE_ENDIAN=1")
-    MESSAGE("System is in Little Endian.")
+    MESSAGE(STATUS "System is in Little Endian.")
 ENDIF(${BIG_ENDIAN})
 
 
 IF(EMSCRIPTEN)
     SET(SODIUM_DISABLE_ASM ON)
-    MESSAGE("Compiling to javascript, disabling asm implementations.")
+    MESSAGE(STATUS "Compiling to javascript, disabling asm implementations.")
 ELSE(EMSCRIPTEN)
     SET(libsodium_SOURCE ${libsodium_SOURCE}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/randombytes/sysrandom/randombytes_sysrandom.c
@@ -129,7 +167,7 @@ IF(HAVE_TI_MODE_COMPILE)
 
     ADD_DEFINITIONS(-DHAVE_TI_MODE)
 
-    MESSAGE("Gcc TI Mode is available.")
+    MESSAGE(STATUS "Gcc TI Mode is available.")
 
 ELSE(HAVE_TI_MODE_COMPILE)
 
@@ -145,7 +183,7 @@ ELSE(HAVE_TI_MODE_COMPILE)
     SET(libsodium_SOURCE ${libsodium_SOURCE}
     )
 
-    MESSAGE("Gcc TI Mode is not available.")
+    MESSAGE(STATUS "Gcc TI Mode is not available.")
 
 ENDIF(HAVE_TI_MODE_COMPILE)
 
@@ -154,9 +192,9 @@ ENDIF(HAVE_TI_MODE_COMPILE)
 TRY_COMPILE(HAVE_WEAK_SYMBOLS_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_WEAK_SYMBOLS.c)
 IF(HAVE_WEAK_SYMBOLS_COMPILE)
     ADD_DEFINITIONS("-DHAVE_WEAK_SYMBOLS")
-    MESSAGE("Weak Symbols are supported.")
+    MESSAGE(STATUS "Weak Symbols are supported.")
 ELSE(HAVE_WEAK_SYMBOLS_COMPILE)
-    MESSAGE("Weak Symbols are not supported.")
+    MESSAGE(STATUS "Weak Symbols are not supported.")
     SET(TEST ON)
 ENDIF(HAVE_WEAK_SYMBOLS_COMPILE)
 
@@ -165,10 +203,10 @@ ENDIF(HAVE_WEAK_SYMBOLS_COMPILE)
 TRY_COMPILE(IS_STDC_LIMIT_MACROS_NEEDED_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/IS_STDC_LIMIT_MACROS_NEEDED.c)
 IF(IS_STDC_LIMIT_MACROS_NEEDED_COMPILE)
     #If this works then we dont need to define __STDC_LIMIT_MACROS and __STDC_CONSTANT_MACROS.
-    MESSAGE("__STDC_LIMIT_MACROS and __STDC_CONSTANT_MACROS not needed.")
+    MESSAGE(STATUS "__STDC_LIMIT_MACROS and __STDC_CONSTANT_MACROS not needed.")
 ELSE(IS_STDC_LIMIT_MACROS_NEEDED_COMPILE)
     ADD_DEFINITIONS("-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS")
-    MESSAGE("__STDC_LIMIT_MACROS and __STDC_CONSTANT_MACROS is needed and was added to the definitions.")
+    MESSAGE(STATUS "__STDC_LIMIT_MACROS and __STDC_CONSTANT_MACROS is needed and was added to the definitions.")
 ENDIF(IS_STDC_LIMIT_MACROS_NEEDED_COMPILE)
 
 
@@ -178,7 +216,7 @@ ENABLE_LANGUAGE(ASM)
 
 IF(CMAKE_ASM_COMPILER_WORKS)
     SET(ASSEMBLER_AVAILABLE ON)
-    MESSAGE("An ASM compiler has been found and is functionnal.")
+    MESSAGE(STATUS "An ASM compiler has been found and is functionnal.")
 ELSE(CMAKE_ASM_COMPILER_WORKS)
     SET(ASSEMBLER_AVAILABLE OFF)
     MESSAGE(FATAL "An ASM compiler has not been found or is not functionnal.")
@@ -189,7 +227,7 @@ TRY_COMPILE(HAVE_AVX_ASM_V_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CUR
 IF(HAVE_AVX_ASM_V_COMPILE)
     SET(HAVE_AVX_ASM_V_COMPILE ON)
     ADD_DEFINITIONS(-DHAVE_AVX_ASM=1)
-    MESSAGE("Assemble AVX opcode supported.")
+    MESSAGE(STATUS "Assemble AVX opcode supported.")
 
     SET(libsodium_HEADERS ${libsodium_HEADERS}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts_namespace.h
@@ -211,7 +249,7 @@ IF(HAVE_AVX_ASM_V_COMPILE)
     )
 ELSE(HAVE_AVX_ASM_V_COMPILE)
     SET(HAVE_AVX_ASM_V_COMPILE OFF)
-    MESSAGE("Assemble AVX opcode not supported.")
+    MESSAGE(STATUS "Assemble AVX opcode not supported.")
 ENDIF(HAVE_AVX_ASM_V_COMPILE)
 
 
@@ -220,17 +258,17 @@ TRY_COMPILE(IS_CPUID_INSTRUCTION_AVAILABLE_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/b
 IF(IS_CPUID_INSTRUCTION_AVAILABLE_COMPILE)
     SET(IS_CPUID_INSTRUCTION_AVAILABLE ON)
     ADD_DEFINITIONS("-DHAVE_CPUID")
-    MESSAGE("Cpuid instruction is available.")
+    MESSAGE(STATUS "Cpuid instruction is available.")
 ELSE(IS_CPUID_INSTRUCTION_AVAILABLE_COMPILE)
     SET(IS_CPUID_INSTRUCTION_AVAILABLE OFF)
-    MESSAGE("Cpuid instruction is not available.")
+    MESSAGE(STATUS "Cpuid instruction is not available.")
 ENDIF(IS_CPUID_INSTRUCTION_AVAILABLE_COMPILE)
 
 
 #Have AMD64 ASM check
 IF(SODIUM_DISABLE_ASM)
 
-    MESSAGE("AMD64 ASM implementations have been disabled.")
+    MESSAGE(STATUS "AMD64 ASM implementations have been disabled.")
 
     SET(libsodium_HEADERS ${libsodium_HEADERS}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/ref/salsa20_ref.h
@@ -253,22 +291,12 @@ ELSE(SODIUM_DISABLE_ASM)
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm_namespace.h
             )
 
-            # Not sure about these
-            #SET(libsodium_HEADERS ${libsodium_HEADERS}
-            #    ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts.S
-            #    ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_mul.S
-            #    ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_nsquare.S
-            #    ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_pack.S
-            #    ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder.S
-            #    ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder_base.S
-            #)
-
             SET(libsodium_SOURCE ${libsodium_SOURCE}
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm.S
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6.c
             )
 
-            MESSAGE("AMD64 ASM is available.")
+            MESSAGE(STATUS "AMD64 ASM is available.")
 
         ELSE(HAVE_AMD64_ASM_COMPILE)
 
@@ -280,7 +308,7 @@ ELSE(SODIUM_DISABLE_ASM)
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/ref/salsa20_ref.c
             )
 
-            MESSAGE("AMD64 ASM is not available.")
+            MESSAGE(STATUS "AMD64 ASM is not available.")
 
         ENDIF(HAVE_AMD64_ASM_COMPILE)
     ENDIF(ASSEMBLER_AVAILABLE)
@@ -291,9 +319,9 @@ MESSAGE("---------------- DONE WITH SYSTEM CHECKS. -----------------")
 MESSAGE("                                                           ")
 
 
-#----------------------------------------------------------
-################### COMPILER FLAG CHECKS ##################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                    COMPILER FLAGS CHECKS                         │
+# └──────────────────────────────────────────────────────────────────┘
 
 #Compiler flag check macro definition.
 MACRO(CHECK_COMPILER_FLAG)
@@ -305,166 +333,171 @@ MACRO(CHECK_COMPILER_FLAG)
 
     IF(IS_${ARGV0}_AVAILABLE)
         SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
-        MESSAGE("Checking if ${FLAG} is available... It is available.")
+        MESSAGE(STATUS "Checking if ${FLAG} is available... It is available.")
     ELSE(IS_${ARGV0}_AVAILABLE)
-        MESSAGE("Checking if ${FLAG} is available... It is not available.")
+        MESSAGE(STATUS "Checking if ${FLAG} is available... It is not available.")
     ENDIF(IS_${ARGV0}_AVAILABLE)
 
 ENDMACRO(CHECK_COMPILER_FLAG)
 
-
 MESSAGE("------------- PERFORMING COMPILER FLAG CHECKS. ------------")
 
-
-#Check if debug mode is active
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    MESSAGE("-- Debug build enabled. --")
-    ADD_DEFINITIONS("-DDEBUG=1")
-    CHECK_COMPILER_FLAG(O)
-    CHECK_COMPILER_FLAG(g3)
-ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
-    MESSAGE("-- Release build enabled. --")
-    CHECK_COMPILER_FLAG(O3)
-ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
-
-#Check if -std=c99 is available.
-CHECK_COMPILER_FLAG(std=c99)
+INCLUDE(CheckCCompilerFlag)
 
 #Check if -D_FORTIFY_SOURCE=2 is available.
 CHECK_COMPILER_FLAG(D_FORTIFY_SOURCE=2)
 
-#Check if clang and if -Wno-unknown-warning-option is available.
-IF("${CMAKE_C_COMPILER_ID}" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    CHECK_COMPILER_FLAG(Wno-unknown-warning-option)
-ENDIF()
+IF(MSVC)
 
-IF(NOT (MSYS OR MINGW OR CYGWIN))
-    #Check if -fPIC is available.
-    CHECK_COMPILER_FLAG(fPIC)
-ELSE(NOT (MSYS OR MINGW OR CYGWIN))
-    CHECK_COMPILER_FLAG(Wl,--dynamicbase)
-    CHECK_COMPILER_FLAG(Wl,--nxcompat)
-ENDIF(NOT (MSYS OR MINGW OR CYGWIN))
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /Oy- /Ob1 /O2 /Gy /wd4146 /wd4244 /wd4197 /wd4996 /wd4710 /wd4820 /wd4711")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /Oy- /Ob1 /O2 /Gy /wd4146 /wd4244 /wd4197 /wd4996 /wd4710 /wd4820 /wd4711")
 
-#Check if -fPIE is available.
-IF(NOT SODIUM_DISABLE_PIE)
-    CHECK_COMPILER_FLAG(fPIE)
-ENDIF(NOT SODIUM_DISABLE_PIE)
+ELSE(MSVC)
 
-#Check if -Wall is available.
-CHECK_COMPILER_FLAG(Wall)
+    #Check if debug mode is active
+    IF(CMAKE_BUILD_TYPE MATCHES Debug)
+        MESSAGE("-- Debug build enabled. --")
+        ADD_DEFINITIONS("-DDEBUG=1")
+        CHECK_COMPILER_FLAG(O)
+        CHECK_COMPILER_FLAG(g3)
+    ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
+        MESSAGE("-- Release build enabled. --")
+        CHECK_COMPILER_FLAG(O3)
+    ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
-#Check if -Wextra is available.
-CHECK_COMPILER_FLAG(Wextra)
+    #Check if -std=c99 is available.
+    CHECK_COMPILER_FLAG(std=c99)
 
-#Check if -fvisibility=hidden is available
-CHECK_COMPILER_FLAG(fvisibility=hidden)
+    #Check if clang and if -Wno-unknown-warning-option is available.
+    IF("${CMAKE_C_COMPILER_ID}" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        CHECK_COMPILER_FLAG(Wno-unknown-warning-option)
+    ENDIF()
 
-#Check if -fno-strict-aliasing is available.
-CHECK_COMPILER_FLAG(fno-strict-aliasing)
+    IF(NOT (MSYS OR MINGW OR CYGWIN))
+        #Check if -fPIC is available.
+        CHECK_COMPILER_FLAG(fPIC)
+    ELSE(NOT (MSYS OR MINGW OR CYGWIN))
+        CHECK_COMPILER_FLAG(Wl,--dynamicbase)
+        CHECK_COMPILER_FLAG(Wl,--nxcompat)
+    ENDIF(NOT (MSYS OR MINGW OR CYGWIN))
 
-#Check if -fno-strict-overflow is available.
-CHECK_COMPILER_FLAG(fno-strict-overflow)
-IF(NOT IS_fno-strict-overflow_AVAILABLE)
-    #If -fno-strict-overflow is not available, try with -fwrapv.
-    CHECK_COMPILER_FLAG(fwrapv)
-ENDIF()
+    #Check if -fPIE is available.
+    IF(NOT SODIUM_DISABLE_PIE)
+        CHECK_COMPILER_FLAG(fPIE)
+    ENDIF(NOT SODIUM_DISABLE_PIE)
 
-IF(NOT SODIUM_DISABLE_SSP)
-    #Check if -fstack-protector is available.
-    CHECK_COMPILER_FLAG(fstack-protector)
-ENDIF(NOT SODIUM_DISABLE_SSP)
+    #Check if -Wall is available.
+    CHECK_COMPILER_FLAG(Wall)
 
-#Check if -Winit-self is available.
-CHECK_COMPILER_FLAG(Winit-self)
+    #Check if -Wextra is available.
+    CHECK_COMPILER_FLAG(Wextra)
 
-#Check if -Wwrite-strings is available.
-CHECK_COMPILER_FLAG(Wwrite-strings)
+    #Check if -fvisibility=hidden is available
+    CHECK_COMPILER_FLAG(fvisibility=hidden)
 
-#Check if -Wdiv-by-zero is available.
-CHECK_COMPILER_FLAG(Wdiv-by-zero)
+    #Check if -fno-strict-aliasing is available.
+    CHECK_COMPILER_FLAG(fno-strict-aliasing)
 
-#Check if -Wsometimes-uninitialized is available.
-CHECK_COMPILER_FLAG(Wsometimes-uninitialized)
+    #Check if -fno-strict-overflow is available.
+    CHECK_COMPILER_FLAG(fno-strict-overflow)
+    IF(NOT IS_fno-strict-overflow_AVAILABLE)
+        #If -fno-strict-overflow is not available, try with -fwrapv.
+        CHECK_COMPILER_FLAG(fwrapv)
+    ENDIF()
 
-#Check if -Wbad-function-cast is available.
-CHECK_COMPILER_FLAG(Wbad-function-cast)
+    IF(NOT SODIUM_DISABLE_SSP)
+        #Check if -fstack-protector is available.
+        CHECK_COMPILER_FLAG(fstack-protector)
+    ENDIF(NOT SODIUM_DISABLE_SSP)
 
-#Check if -Wcast-align is available.
-CHECK_COMPILER_FLAG(Wcast-align)
+    #Check if -Winit-self is available.
+    CHECK_COMPILER_FLAG(Winit-self)
 
-#Check if -Wcast-qual is available.
-CHECK_COMPILER_FLAG(Wcast-qual)
+    #Check if -Wwrite-strings is available.
+    CHECK_COMPILER_FLAG(Wwrite-strings)
 
-#Check if -Wchar-subscripts is available.
-CHECK_COMPILER_FLAG(Wchar-subscripts)
+    #Check if -Wdiv-by-zero is available.
+    CHECK_COMPILER_FLAG(Wdiv-by-zero)
 
-#Check if -Wcomment is available.
-CHECK_COMPILER_FLAG(Wcomment)
+    #Check if -Wsometimes-uninitialized is available.
+    CHECK_COMPILER_FLAG(Wsometimes-uninitialized)
 
-#Check if -Wfloat-equal is available.
-CHECK_COMPILER_FLAG(Wfloat-equal)
+    #Check if -Wbad-function-cast is available.
+    CHECK_COMPILER_FLAG(Wbad-function-cast)
 
-#Check if -Wformat=2 is available.
-CHECK_COMPILER_FLAG(Wformat=2)
+    #Check if -Wcast-align is available.
+    CHECK_COMPILER_FLAG(Wcast-align)
 
-#Check if -Wimplicit is available.
-CHECK_COMPILER_FLAG(Wimplicit)
+    #Check if -Wcast-qual is available.
+    CHECK_COMPILER_FLAG(Wcast-qual)
 
-#Check if -Wmissing-declarations is available.
-CHECK_COMPILER_FLAG(Wmissing-declarations)
+    #Check if -Wchar-subscripts is available.
+    CHECK_COMPILER_FLAG(Wchar-subscripts)
 
-#Check if -Wmissing-prototypes is available.
-CHECK_COMPILER_FLAG(Wmissing-prototypes)
+    #Check if -Wcomment is available.
+    CHECK_COMPILER_FLAG(Wcomment)
 
-#Check if -Wnormalized=id is available.
-CHECK_COMPILER_FLAG(Wnormalized=id)
+    #Check if -Wfloat-equal is available.
+    CHECK_COMPILER_FLAG(Wfloat-equal)
 
-#Check if -Woverride-init is available.
-CHECK_COMPILER_FLAG(Woverride-init)
+    #Check if -Wformat=2 is available.
+    CHECK_COMPILER_FLAG(Wformat=2)
 
-#Check if -Wparentheses is available.
-CHECK_COMPILER_FLAG(Wparentheses)
+    #Check if -Wimplicit is available.
+    CHECK_COMPILER_FLAG(Wimplicit)
 
-#Check if -Wpointer-arith is available.
-CHECK_COMPILER_FLAG(Wpointer-arith)
+    #Check if -Wmissing-declarations is available.
+    CHECK_COMPILER_FLAG(Wmissing-declarations)
 
-#Check if -Wredundant-decls is available.
-CHECK_COMPILER_FLAG(Wredundant-decls)
+    #Check if -Wmissing-prototypes is available.
+    CHECK_COMPILER_FLAG(Wmissing-prototypes)
 
-#Check if -Wstrict-prototypes is available.
-CHECK_COMPILER_FLAG(Wstrict-prototypes)
+    #Check if -Wnormalized=id is available.
+    CHECK_COMPILER_FLAG(Wnormalized=id)
 
-#Check if -Wswitch-enum is available.
-CHECK_COMPILER_FLAG(Wswitch-enum)
+    #Check if -Woverride-init is available.
+    CHECK_COMPILER_FLAG(Woverride-init)
 
-#Check if -Wvariable-dec is available.
-CHECK_COMPILER_FLAG(Wvariable-decl)
+    #Check if -Wparentheses is available.
+    CHECK_COMPILER_FLAG(Wparentheses)
 
-IF(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    #Check if -Wpointer-arith is available.
+    CHECK_COMPILER_FLAG(Wpointer-arith)
 
-    #Check if -Wl,-z,relro is available.
-    CHECK_COMPILER_FLAG(Wl,-z,relro)
+    #Check if -Wredundant-decls is available.
+    CHECK_COMPILER_FLAG(Wredundant-decls)
 
-    #Check if -Wl,-z,now is available.
-    CHECK_COMPILER_FLAG(Wl,-z,now)
+    #Check if -Wstrict-prototypes is available.
+    CHECK_COMPILER_FLAG(Wstrict-prototypes)
 
-    #Check if -Wl,-z,noexecstack is available.
-    CHECK_COMPILER_FLAG(Wl,-z,noexecstack)
+    #Check if -Wswitch-enum is available.
+    CHECK_COMPILER_FLAG(Wswitch-enum)
 
-ENDIF(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    #Check if -Wvariable-dec is available.
+    CHECK_COMPILER_FLAG(Wvariable-decl)
 
-#Check if -Wl,--verbose is available and enable it.
-#CHECK_COMPILER_FLAG(Wl,--verbose)
+    # Macro says flag is available but ld says unknown flag
+    IF(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
+        #Check if -Wl,-z,relro is available.
+        CHECK_COMPILER_FLAG(Wl,-z,relro)
+
+        #Check if -Wl,-z,now is available.
+        CHECK_COMPILER_FLAG(Wl,-z,now)
+
+        #Check if -Wl,-z,noexecstack is available.
+        CHECK_COMPILER_FLAG(Wl,-z,noexecstack)
+
+    ENDIF(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+
+ENDIF(MSVC)
 
 MESSAGE("------------- DONE WITH COMPILER FLAG CHECKS. -------------")
 MESSAGE("                                                           ")
 
-
-#----------------------------------------------------------
-##################### SOURCE / HEADERS ####################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                      SOURCES / HEADERS                           │
+# └──────────────────────────────────────────────────────────────────┘
 
 SET(libsodium_HEADERS ${libsodium_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2.h
@@ -566,9 +599,9 @@ SET(libsodium_SOURCE ${libsodium_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/sodium/version.c
 )
 
-#----------------------------------------------------------
-################### MINIMAL BUILD CHECK ###################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                    MINIMAL_BUILD_CHECK                           │
+# └──────────────────────────────────────────────────────────────────┘
 
 IF(NOT SODIUM_ENABLE_MINIMAL_BUILD)
 
@@ -608,14 +641,9 @@ IF(SODIUM_ENABLE_BLOCKING_RANDOM)
     ADD_DEFINITIONS("-DUSE_BLOCKING_RANDOM")
 ENDIF(SODIUM_ENABLE_BLOCKING_RANDOM)
 
-IF(MSVC)
-    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /Oy- /Ob1 /O2 /Gy /wd4146 /wd4244 /wd4197 /wd4996 /wd4710 /wd4820 /wd4711")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /Oy- /Ob1 /O2 /Gy /wd4146 /wd4244 /wd4197 /wd4996 /wd4710 /wd4820 /wd4711")
-ENDIF()
-
-#----------------------------------------------------------
-######################### LIBRDRAND #######################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                           LIBRDRAND                              │
+# └──────────────────────────────────────────────────────────────────┘
 
 IF(NOT EMSCRIPTEN)
 
@@ -627,9 +655,9 @@ IF(NOT EMSCRIPTEN)
     )
 ENDIF(NOT EMSCRIPTEN)
 
-#----------------------------------------------------------
-######################### LIBAESNI ########################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                           LIBAESNI                               │
+# └──────────────────────────────────────────────────────────────────┘
 
     SET(libaesni_HEADERS ${libaesni_HEADERS}
     )
@@ -638,9 +666,9 @@ ENDIF(NOT EMSCRIPTEN)
     )
 SET(LIBAESNI_TARGET libaesni)
 
-#----------------------------------------------------------
-######################### LIBSSE2 #########################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                            LIBSSE2                               │
+# └──────────────────────────────────────────────────────────────────┘
 
 SET(libsse2_HEADERS ${libsse2_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_onetimeauth/poly1305/sse2/poly1305_sse2.h
@@ -668,9 +696,9 @@ IF(NOT HAVE_AMD64_ASM_COMPILE)
     )
 ENDIF(NOT HAVE_AMD64_ASM_COMPILE)
 
-#----------------------------------------------------------
-######################### LIBSSE3 #########################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                            LIBSSE3                               │
+# └──────────────────────────────────────────────────────────────────┘
 
 SET(libsse3_HEADERS ${libsse3_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ssse3.h
@@ -688,9 +716,9 @@ SET(libsse3_SOURCE ${libsse3_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-ssse3.c
 )
 
-#----------------------------------------------------------
-######################### LIBSSE41 ########################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                            LIBSSE41                               │
+# └──────────────────────────────────────────────────────────────────┘
 
 SET(libsse41_HEADERS ${libsse41_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-sse41.h
@@ -701,9 +729,9 @@ SET(libsse41_SOURCE ${libsse41_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-sse41.c
 )
 
-#----------------------------------------------------------
-######################### LIBAVX2 #########################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                            LIBAVX2                               │
+# └──────────────────────────────────────────────────────────────────┘
 
 SET(libavx2_HEADERS ${libavx2_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-avx2.h
@@ -724,9 +752,9 @@ SET(libavx2_SOURCE ${libavx2_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.c
 )
 
-#----------------------------------------------------------
-######################### LIBAVC512F ######################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                            LIBAVX512F                            │
+# └──────────────────────────────────────────────────────────────────┘
 
 SET(libavx512f_HEADERS ${libavx512f_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_pwhash/argon2/blamka-round-avx512f.h
@@ -736,9 +764,9 @@ SET(libavx512f_SOURCE ${libavx512f_SOURCE}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_pwhash/argon2/argon2-fill-block-avx512f.c
 )
 
-#----------------------------------------------------------
-######################### LIBSODIUM #######################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                            LIBSODIUM                             │
+# └──────────────────────────────────────────────────────────────────┘
 
 foreach(_source IN ITEMS ${libsodium_HEADERS})
     get_filename_component(_source_path "${_source}" PATH)
@@ -768,10 +796,6 @@ if (MSVC AND (MSVC_VERSION GREATER 1900))
 endif()
 
 IF(SODIUM_BUILD_SHARED)
-    MESSAGE(STATUS "Build shared libsodium")
-    IF( MSVC )
-    INCLUDE (GenerateExportHeader)
-    ENDIF( MSVC )
 
     ADD_LIBRARY(${SODIUM_TARGET} SHARED
         ${libsodium_HEADERS}
@@ -792,18 +816,8 @@ IF(SODIUM_BUILD_SHARED)
         ${libavx512f_SOURCE}
         )
 
-    IF( MSVC )
-    GENERATE_EXPORT_HEADER( ${SODIUM_TARGET}
-        BASE_NAME ${SODIUM_TARGET}
-        EXPORT_MACRO_NAME ${SODIUM_TARGET}_EXPORT
-        EXPORT_FILE_NAME ${SODIUM_TARGET}_Export.h
-        STATIC_DEFINE ${SODIUM_TARGET}_BUILT_AS_STATIC
-    )
-    ENDIF( MSVC )
     TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} PRIVATE "-DSODIUM_DLL_EXPORT")
 ELSE(SODIUM_BUILD_SHARED)
-    MESSAGE(STATUS "Build static libsodium")
-    ADD_DEFINITIONS("-DSODIUM_STATIC")
     ADD_LIBRARY(${SODIUM_TARGET} STATIC
         ${libsodium_HEADERS}
         ${libsodium_SOURCE}
@@ -822,274 +836,32 @@ ELSE(SODIUM_BUILD_SHARED)
         ${libavx512f_HEADERS}
         ${libavx512f_SOURCE}
         )
+    TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} PUBLIC "-DSODIUM_STATIC")
 ENDIF(SODIUM_BUILD_SHARED)
 
-SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib
-    PROJECT_LABEL "${SODIUM_TARGET}"
-)
-
-TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium)
-TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include> $<INSTALL_INTERFACE:libsodium>)
+# Public interface only requires #include <sodium.h>
+TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include> $<INSTALL_INTERFACE:${SODIUM_INSTALL_PREFIX}>)
+# Required by c core files
 TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium)
-#For version.h.in to version.h
-TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/src/libsodium/include/sodium)
+
+# Put the target inside the correct folder for superbuild
+SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES FOLDER ${SODIUM_FOLDER_PREFIX})
 
 # Avoid liblibsodium on darwin for example.
 SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES PREFIX "")
 
-#----------------------------------------------------------
-########################## TESTS ##########################
-#----------------------------------------------------------
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                            TESTS                                 │
+# └──────────────────────────────────────────────────────────────────┘
 
-IF(${SODIUM_ENABLE_TESTS})
+IF(SODIUM_ENABLE_TESTS)
+    INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/CTestLists.txt)
+ENDIF(SODIUM_ENABLE_TESTS)
 
-    ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/test/default)
-    ENABLE_TESTING()
+# ┌──────────────────────────────────────────────────────────────────┐
+# │                          INSTALL                                 │
+# └──────────────────────────────────────────────────────────────────┘
 
-    ADD_TEST(NAME aead_aes256gcm_test          COMMAND aead_aes256gcm          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME aead_aes256gcm2_test         COMMAND aead_aes256gcm2         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME aead_chacha20poly1305_test   COMMAND aead_chacha20poly1305   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME aead_chacha20poly13052_test  COMMAND aead_chacha20poly13052  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME auth_test                    COMMAND auth                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME auth2_test                   COMMAND auth2                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME auth3_test                   COMMAND auth3                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME auth5_test                   COMMAND auth5                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME auth6_test                   COMMAND auth6                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME auth7_test                   COMMAND auth7                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box_test                     COMMAND box                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box2_test                    COMMAND box2                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box7_test                    COMMAND box7                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box8_test                    COMMAND box8                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box_easy_test                COMMAND box_easy                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box_easy2_test               COMMAND box_easy2               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box_seal_test                COMMAND box_seal                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME box_seed_test                COMMAND box_seed                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME chacha20_test                COMMAND chacha20                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME codecs_test                  COMMAND codecs                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core1_test                   COMMAND core1                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core2_test                   COMMAND core2                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core3_test                   COMMAND core3                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core4_test                   COMMAND core4                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core5_test                   COMMAND core5                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core6_test                   COMMAND core6                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core_ed25519_test            COMMAND core_ed25519            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME core_ristretto255_test       COMMAND core_ristretto255       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME ed25519_convert_test         COMMAND ed25519_convert         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME generichash_test             COMMAND generichash             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME generichash2_test            COMMAND generichash2            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME generichash3_test            COMMAND generichash3            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME hash_test                    COMMAND hash                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME hash3_test                   COMMAND hash3                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME kdf_test                     COMMAND kdf                     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME keygen_test                  COMMAND keygen                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME metamorphic_test             COMMAND metamorphic             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME misuse_test                  COMMAND misuse                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME onetimeauth_test             COMMAND onetimeauth             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME onetimeauth2_test            COMMAND onetimeauth2            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME onetimeauth7_test            COMMAND onetimeauth7            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME pwhash_argon2i_test          COMMAND pwhash_argon2i          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME pwhash_argon2id_test         COMMAND pwhash_argon2id         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME pwhash_scrypt_test           COMMAND pwhash_scrypt           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME pwhash_scrypt_ll_test        COMMAND pwhash_scrypt_ll        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME randombytes_test             COMMAND randombytes             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult_test              COMMAND scalarmult              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult2_test             COMMAND scalarmult2             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult5_test             COMMAND scalarmult5             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult6_test             COMMAND scalarmult6             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult7_test             COMMAND scalarmult7             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult8_test             COMMAND scalarmult8             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult_ed25519_test      COMMAND scalarmult_ed25519      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME scalarmult_ristretto255_test COMMAND scalarmult_ristretto255 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME secretbox_test               COMMAND secretbox               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME secretbox2_test              COMMAND secretbox2              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME secretbox7_test              COMMAND secretbox7              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME secretbox8_test              COMMAND secretbox8              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME secretbox_easy_test          COMMAND secretbox_easy          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME secretbox_easy2_test         COMMAND secretbox_easy2         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME secretstream_test            COMMAND secretstream            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME shorthash_test               COMMAND shorthash               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME sign_test                    COMMAND sign                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME siphashx24_test              COMMAND siphashx24              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME sodium_core_test             COMMAND sodium_core             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME sodium_utils_test            COMMAND sodium_utils            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME sodium_utils2_test           COMMAND sodium_utils2           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME sodium_utils3_test           COMMAND sodium_utils3           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME sodium_version_test          COMMAND sodium_version          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME stream_test                  COMMAND stream                  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME stream2_test                 COMMAND stream2                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME stream3_test                 COMMAND stream3                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME stream4_test                 COMMAND stream4                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME verify1_test                 COMMAND verify1                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-    ADD_TEST(NAME xchacha20_test               COMMAND xchacha20               WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test/default/)
-
-
-    SET_TESTS_PROPERTIES(aead_aes256gcm_test          PROPERTIES DEPENDS aead_aes256gcm)
-    SET_TESTS_PROPERTIES(aead_aes256gcm2_test         PROPERTIES DEPENDS aead_aes256gcm2)
-    SET_TESTS_PROPERTIES(aead_chacha20poly1305_test   PROPERTIES DEPENDS aead_chacha20poly1305)
-    SET_TESTS_PROPERTIES(aead_chacha20poly13052_test  PROPERTIES DEPENDS aead_chacha20poly13052)
-    SET_TESTS_PROPERTIES(auth_test                    PROPERTIES DEPENDS auth)
-    SET_TESTS_PROPERTIES(auth2_test                   PROPERTIES DEPENDS auth2)
-    SET_TESTS_PROPERTIES(auth3_test                   PROPERTIES DEPENDS auth3)
-    SET_TESTS_PROPERTIES(auth5_test                   PROPERTIES DEPENDS auth5)
-    SET_TESTS_PROPERTIES(auth6_test                   PROPERTIES DEPENDS auth6)
-    SET_TESTS_PROPERTIES(auth7_test                   PROPERTIES DEPENDS auth7)
-    SET_TESTS_PROPERTIES(box_test                     PROPERTIES DEPENDS box)
-    SET_TESTS_PROPERTIES(box2_test                    PROPERTIES DEPENDS box2)
-    SET_TESTS_PROPERTIES(box7_test                    PROPERTIES DEPENDS box7)
-    SET_TESTS_PROPERTIES(box8_test                    PROPERTIES DEPENDS box8)
-    SET_TESTS_PROPERTIES(box_easy_test                PROPERTIES DEPENDS box_easy)
-    SET_TESTS_PROPERTIES(box_easy2_test               PROPERTIES DEPENDS box_easy2)
-    SET_TESTS_PROPERTIES(box_seal_test                PROPERTIES DEPENDS box_seal)
-    SET_TESTS_PROPERTIES(box_seed_test                PROPERTIES DEPENDS box_seed)
-    SET_TESTS_PROPERTIES(chacha20_test                PROPERTIES DEPENDS chacha20)
-    SET_TESTS_PROPERTIES(codecs_test                  PROPERTIES DEPENDS codecs)
-    SET_TESTS_PROPERTIES(core1_test                   PROPERTIES DEPENDS core1)
-    SET_TESTS_PROPERTIES(core2_test                   PROPERTIES DEPENDS core2)
-    SET_TESTS_PROPERTIES(core3_test                   PROPERTIES DEPENDS core3)
-    SET_TESTS_PROPERTIES(core4_test                   PROPERTIES DEPENDS core4)
-    SET_TESTS_PROPERTIES(core5_test                   PROPERTIES DEPENDS core5)
-    SET_TESTS_PROPERTIES(core6_test                   PROPERTIES DEPENDS core6)
-    SET_TESTS_PROPERTIES(core_ed25519_test            PROPERTIES DEPENDS core_ed25519)
-    SET_TESTS_PROPERTIES(core_ristretto255_test       PROPERTIES DEPENDS core_ristretto255)
-    SET_TESTS_PROPERTIES(ed25519_convert_test         PROPERTIES DEPENDS ed25519_convert)
-    SET_TESTS_PROPERTIES(generichash_test             PROPERTIES DEPENDS generichash)
-    SET_TESTS_PROPERTIES(generichash2_test            PROPERTIES DEPENDS generichash2)
-    SET_TESTS_PROPERTIES(generichash3_test            PROPERTIES DEPENDS generichash3)
-    SET_TESTS_PROPERTIES(hash_test                    PROPERTIES DEPENDS hash)
-    SET_TESTS_PROPERTIES(hash3_test                   PROPERTIES DEPENDS hash3)
-    SET_TESTS_PROPERTIES(kdf_test                     PROPERTIES DEPENDS kdf)
-    SET_TESTS_PROPERTIES(keygen_test                  PROPERTIES DEPENDS keygen)
-    SET_TESTS_PROPERTIES(metamorphic_test             PROPERTIES DEPENDS metamorphic)
-    SET_TESTS_PROPERTIES(misuse_test                  PROPERTIES DEPENDS misuse)
-    SET_TESTS_PROPERTIES(onetimeauth_test             PROPERTIES DEPENDS onetimeauth)
-    SET_TESTS_PROPERTIES(onetimeauth2_test            PROPERTIES DEPENDS onetimeauth2)
-    SET_TESTS_PROPERTIES(onetimeauth7_test            PROPERTIES DEPENDS onetimeauth7)
-    SET_TESTS_PROPERTIES(pwhash_argon2i_test          PROPERTIES DEPENDS pwhash_argon2i)
-    SET_TESTS_PROPERTIES(pwhash_argon2id_test         PROPERTIES DEPENDS pwhash_argon2id)
-    SET_TESTS_PROPERTIES(pwhash_scrypt_test           PROPERTIES DEPENDS pwhash_scrypt)
-    SET_TESTS_PROPERTIES(pwhash_scrypt_ll_test        PROPERTIES DEPENDS pwhash_scrypt_ll)
-    SET_TESTS_PROPERTIES(randombytes_test             PROPERTIES DEPENDS randombytes)
-    SET_TESTS_PROPERTIES(scalarmult_test              PROPERTIES DEPENDS scalarmult)
-    SET_TESTS_PROPERTIES(scalarmult2_test             PROPERTIES DEPENDS scalarmult2)
-    SET_TESTS_PROPERTIES(scalarmult5_test             PROPERTIES DEPENDS scalarmult5)
-    SET_TESTS_PROPERTIES(scalarmult6_test             PROPERTIES DEPENDS scalarmult6)
-    SET_TESTS_PROPERTIES(scalarmult7_test             PROPERTIES DEPENDS scalarmult7)
-    SET_TESTS_PROPERTIES(scalarmult8_test             PROPERTIES DEPENDS scalarmult8)
-    SET_TESTS_PROPERTIES(scalarmult_ed25519_test      PROPERTIES DEPENDS scalarmult_ed25519)
-    SET_TESTS_PROPERTIES(scalarmult_ristretto255_test PROPERTIES DEPENDS scalarmult_ristretto255)
-    SET_TESTS_PROPERTIES(secretbox_test               PROPERTIES DEPENDS secretbox)
-    SET_TESTS_PROPERTIES(secretbox2_test              PROPERTIES DEPENDS secretbox2)
-    SET_TESTS_PROPERTIES(secretbox7_test              PROPERTIES DEPENDS secretbox7)
-    SET_TESTS_PROPERTIES(secretbox8_test              PROPERTIES DEPENDS secretbox8)
-    SET_TESTS_PROPERTIES(secretbox_easy_test          PROPERTIES DEPENDS secretbox_easy)
-    SET_TESTS_PROPERTIES(secretbox_easy2_test         PROPERTIES DEPENDS secretbox_easy2)
-    SET_TESTS_PROPERTIES(secretstream_test            PROPERTIES DEPENDS secretstream)
-    SET_TESTS_PROPERTIES(shorthash_test               PROPERTIES DEPENDS shorthash)
-    SET_TESTS_PROPERTIES(sign_test                    PROPERTIES DEPENDS sign)
-    SET_TESTS_PROPERTIES(siphashx24_test              PROPERTIES DEPENDS siphashx24)
-    SET_TESTS_PROPERTIES(sodium_core_test             PROPERTIES DEPENDS sodium_core)
-    SET_TESTS_PROPERTIES(sodium_utils_test            PROPERTIES DEPENDS sodium_utils)
-    SET_TESTS_PROPERTIES(sodium_utils2_test           PROPERTIES DEPENDS sodium_utils2)
-    SET_TESTS_PROPERTIES(sodium_utils3_test           PROPERTIES DEPENDS sodium_utils3)
-    SET_TESTS_PROPERTIES(sodium_version_test          PROPERTIES DEPENDS sodium_version)
-    SET_TESTS_PROPERTIES(stream_test                  PROPERTIES DEPENDS stream)
-    SET_TESTS_PROPERTIES(stream2_test                 PROPERTIES DEPENDS stream2)
-    SET_TESTS_PROPERTIES(stream3_test                 PROPERTIES DEPENDS stream3)
-    SET_TESTS_PROPERTIES(stream4_test                 PROPERTIES DEPENDS stream4)
-    SET_TESTS_PROPERTIES(verify1_test                 PROPERTIES DEPENDS verify1)
-    SET_TESTS_PROPERTIES(xchacha20_test               PROPERTIES DEPENDS xchacha20)
-
-ENDIF(${SODIUM_ENABLE_TESTS})
-
-####
-# Installation (https://github.com/novocodev/libsodium-CMake)
-
-# Layout. This works for all platforms:
-#   * <prefix>/lib/cmake/<PROJECT-NAME>
-#   * <prefix>/lib/
-#   * <prefix>/include/
-set(config_install_dir "lib/cmake/${PROJECT_NAME}")
-set(include_install_dir "include")
-
-set(generated_dir "${CMAKE_CURRENT_BINARY_DIR}/generated")
-
-# Configuration
-set(version_config "${generated_dir}/${PROJECT_NAME}ConfigVersion.cmake")
-set(project_config "${generated_dir}/${PROJECT_NAME}Config.cmake")
-set(targets_export_name "${PROJECT_NAME}Targets")
-set(namespace "${PROJECT_NAME}::")
-
-# Include module with fuction 'write_basic_package_version_file'
-include(CMakePackageConfigHelpers)
-
-# Configure '<PROJECT-NAME>ConfigVersion.cmake'
-# Note: PROJECT_VERSION is used as a VERSION
-write_basic_package_version_file(
-    "${version_config}" COMPATIBILITY SameMajorVersion
-)
-
-# Configure '<PROJECT-NAME>Config.cmake'
-# Use variables:
-#   * targets_export_name
-#   * PROJECT_NAME
-MESSAGE(STATUS "Configure Config.cmake.in file located in ${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-configure_package_config_file(
-	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in"
-    "${project_config}"
-    INSTALL_DESTINATION "${config_install_dir}"
-)
-
-# Targets:
-#   * <prefix>/lib/libbar.a
-#   * <prefix>/lib/libbaz.a
-#   * header location after install: <prefix>/include/foo/Bar.hpp
-#   * headers can be included by C++ code `#include <foo/Bar.hpp>`
-install(
-    TARGETS ${SODIUM_TARGET}
-    EXPORT "${targets_export_name}"
-    LIBRARY DESTINATION "lib"
-    ARCHIVE DESTINATION "lib"
-    RUNTIME DESTINATION "bin"
-    INCLUDES DESTINATION "${include_install_dir}"
-)
-
-#install(TARGETS libsodium DESTINATION ".")
-
-# Headers:
-#   * Source/foo/Bar.hpp -> <prefix>/include/foo/Bar.hpp
-#   * Source/foo/Baz.hpp -> <prefix>/include/foo/Baz.hpp
-install(
-	DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/"
-    DESTINATION "${include_install_dir}/libsodium"
-    FILES_MATCHING PATTERN "*.h"
-)
-
-# Export headers:
-#   ${libsodium_HEADERS}
-#install(
-#    FILES
-#        ${libsodium_HEADERS}
-#    DESTINATION "${include_install_dir}"
-#)
-
-# Config
-#   * <prefix>/lib/cmake/Foo/FooConfig.cmake
-#   * <prefix>/lib/cmake/Foo/FooConfigVersion.cmake
-install(
-    FILES "${project_config}" "${version_config}"
-    DESTINATION "${config_install_dir}"
-)
-
-# Config
-#   * <prefix>/lib/cmake/Foo/FooTargets.cmake
-install(
-    EXPORT "${targets_export_name}"
-    NAMESPACE "${namespace}"
-    DESTINATION "${config_install_dir}"
-)
-
-
-#install(FILES ${libsodium_HEADERS} DESTINATION "libsodium")
+IF(SODIUM_ENABLE_INSTALL)
+    INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/CInstallLists.txt)
+ENDIF(SODIUM_ENABLE_INSTALL)
