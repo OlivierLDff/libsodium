@@ -12,8 +12,15 @@ CMAKE_MINIMUM_REQUIRED( VERSION 3.11 )
 # └──────────────────────────────────────────────────────────────────┘
 
 # General
-SET( SODIUM_PROJECT             "libsodium" CACHE STRING "Project Name")
+SET( SODIUM_PROJECT             "libsodium"       CACHE STRING "Sodium Project Name")
 SET( SODIUM_TARGET              ${SODIUM_PROJECT} CACHE STRING "libsodium library name" )
+SET( SODIUM_AESNI_TARGET        libaesni          CACHE STRING "libaesni library name" )
+SET( SODIUM_SSE2_TARGET         libsse2           CACHE STRING "libsse2 library name" )
+SET( SODIUM_SSSE3_TARGET        libssse3          CACHE STRING "libssse3 library name" )
+SET( SODIUM_SSE41_TARGET        libsse41          CACHE STRING "libsse41 library name" )
+SET( SODIUM_AVX2_TARGET         libavx2           CACHE STRING "libavx2 library name" )
+SET( SODIUM_AVX512F_TARGET      libavx512f        CACHE STRING "libavx512f library name" )
+SET( SODIUM_RDRAND_TARGET       librdrand         CACHE STRING "librdrand library name" )
 
 SET(SODIUM_VERSION              "1.0.18" CACHE STRING "libsodium current version" FORCE )
 # VERSION is only here to configure version.h.in properly without changing source code
@@ -314,6 +321,250 @@ ELSE(SODIUM_DISABLE_ASM)
     ENDIF(ASSEMBLER_AVAILABLE)
 ENDIF(SODIUM_DISABLE_ASM)
 
+INCLUDE(CheckCCompilerFlag)
+
+IF(NOT MSVC)
+
+    #Check if -mmmx is available.
+    CHECK_C_COMPILER_FLAG(-mmmx IS_mmmx_AVAILABLE)
+
+    IF(IS_mmmx_AVAILABLE)
+        TRY_COMPILE(HAVE_MMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_MMINTRIN.c COMPILE_DEFINITIONS "-mmmx")
+        IF(HAVE_MMINTRIN_COMPILE)
+            SET(HAVE_MMINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_MMINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmmx")
+            SET(CMAKE_C_FLAGS_MMMX "-mmmx")
+            MESSAGE(STATUS "mmx is available.")
+        ELSE(HAVE_MMINTRIN_COMPILE)
+            SET(HAVE_MMINTRIN OFF)
+            MESSAGE(STATUS "mmx is not available.")
+        ENDIF(HAVE_MMINTRIN_COMPILE)
+    ENDIF(IS_mmmx_AVAILABLE)
+
+    #Check if -msse2 is available.
+    CHECK_C_COMPILER_FLAG(-msse2 IS_msse2_AVAILABLE)
+
+    IF(IS_msse2_AVAILABLE)
+        TRY_COMPILE(HAVE_EMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_EMMINTRIN.c COMPILE_DEFINITIONS "-msse2")
+        IF(HAVE_EMMINTRIN_COMPILE)
+            SET(HAVE_EMMINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_EMMINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
+            SET(CMAKE_C_FLAGS_SSE2 "-msse2")
+            MESSAGE(STATUS "sse2 is available.")
+        ELSE(HAVE_EMMINTRIN_COMPILE)
+            SET(HAVE_EMMINTRIN OFF)
+            MESSAGE(STATUS "sse2 is not available.")
+        ENDIF(HAVE_EMMINTRIN_COMPILE)
+    ENDIF(IS_msse2_AVAILABLE)
+
+    #Check if -msse3 is available.
+    CHECK_C_COMPILER_FLAG(-msse3 IS_msse3_AVAILABLE)
+
+    IF(IS_msse3_AVAILABLE)
+        TRY_COMPILE(HAVE_PMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_PMMINTRIN.c COMPILE_DEFINITIONS "-msse3")
+        IF(HAVE_PMMINTRIN_COMPILE)
+            SET(HAVE_PMMINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_PMMINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3")
+            SET(CMAKE_C_FLAGS_SSE3 "-msse3")
+            MESSAGE(STATUS "sse3 is available.")
+        ELSE(HAVE_PMMINTRIN_COMPILE)
+            SET(HAVE_PMMINTRIN OFF)
+            MESSAGE(STATUS "sse3 is not available.")
+        ENDIF(HAVE_PMMINTRIN_COMPILE)
+    ENDIF(IS_msse3_AVAILABLE)
+
+    #Check if -mssse3 is available.
+    CHECK_C_COMPILER_FLAG(-mssse3 IS_mssse3_AVAILABLE)
+
+    IF(IS_mssse3_AVAILABLE)
+        TRY_COMPILE(HAVE_TMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_TMMINTRIN.c COMPILE_DEFINITIONS "-mssse3")
+        IF(HAVE_TMMINTRIN_COMPILE)
+            SET(HAVE_TMMINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_TMMINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mssse3")
+            SET(CMAKE_C_FLAGS_SSSE3 "-mssse3")
+            MESSAGE(STATUS "ssse3 is available.")
+        ELSE(HAVE_TMMINTRIN_COMPILE)
+            SET(HAVE_TMMINTRIN OFF)
+            MESSAGE(STATUS "ssse3 is not available.")
+        ENDIF(HAVE_TMMINTRIN_COMPILE)
+    ENDIF(IS_mssse3_AVAILABLE)
+
+    #Check if -msse4.1 is available.
+    CHECK_C_COMPILER_FLAG(-msse4.1 IS_msse41_AVAILABLE)
+
+    IF(IS_msse41_AVAILABLE)
+        TRY_COMPILE(HAVE_SMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_SMMINTRIN.c COMPILE_DEFINITIONS "-msse4.1")
+        IF(HAVE_SMMINTRIN_COMPILE)
+            SET(HAVE_SMMINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_SMMINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
+            SET(CMAKE_C_FLAGS_SSE41 "-msse4.1")
+            MESSAGE(STATUS "sse4.1 is available.")
+        ELSE(HAVE_SMMINTRIN_COMPILE)
+            SET(HAVE_SMMINTRIN OFF)
+            MESSAGE(STATUS "sse4.1 is not available.")
+        ENDIF(HAVE_SMMINTRIN_COMPILE)
+    ENDIF(IS_msse41_AVAILABLE)
+
+    #Check if -mavx is available.
+    CHECK_C_COMPILER_FLAG(-mavx IS_mavx_AVAILABLE)
+
+    IF(IS_mavx_AVAILABLE)
+        TRY_COMPILE(HAVE_AVXINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVXINTRIN.c COMPILE_DEFINITIONS "-mavx")
+        IF(HAVE_AVXINTRIN_COMPILE)
+            SET(HAVE_AVXINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_AVXINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
+            SET(CMAKE_C_FLAGS_AVX "-mavx")
+            MESSAGE(STATUS "avx is available.")
+        ELSE(HAVE_AVXINTRIN_COMPILE)
+            SET(HAVE_AVXINTRIN OFF)
+            MESSAGE(STATUS "avx is not available.")
+        ENDIF(HAVE_AVXINTRIN_COMPILE)
+    ENDIF(IS_mavx_AVAILABLE)
+
+    #Check if -mavx2 is available.
+    CHECK_C_COMPILER_FLAG(-mavx2 IS_mavx2_AVAILABLE)
+
+    IF(IS_mavx2_AVAILABLE)
+        TRY_COMPILE(HAVE_AVX2INTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVX2INTRIN.c COMPILE_DEFINITIONS "-mavx2")
+        IF(HAVE_AVX2INTRIN_COMPILE)
+            SET(HAVE_AVX2INTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_AVX2INTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx2")
+            SET(CMAKE_C_FLAGS_AVX2 "-mavx2")
+            MESSAGE(STATUS "avx2 is available.")
+
+            TRY_COMPILE(HAVE_AVX2INTRIN_MM256_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVX2INTRIN_MM256.c)
+            IF(HAVE_AVX2INTRIN_MM256_COMPILE)
+                MESSAGE(STATUS "_mm_broadcastsi128_si256 is correctly defined")
+            ELSE(HAVE_AVX2INTRIN_MM256_COMPILE)
+                ADD_DEFINITIONS("-D_mm256_broadcastsi128_si256=_mm_broadcastsi128_si256")
+                MESSAGE(STATUS "Define to the local name of _mm256_broadcastsi128_si256 to _mm_broadcastsi128_si256")
+            ENDIF(HAVE_AVX2INTRIN_MM256_COMPILE)
+
+        ELSE(HAVE_AVX2INTRIN_COMPILE)
+            SET(HAVE_AVX2INTRIN OFF)
+            MESSAGE(STATUS "avx2 is not available.")
+        ENDIF(HAVE_AVX2INTRIN_COMPILE)
+    ENDIF(IS_mavx2_AVAILABLE)
+
+    #Check if -mavx512f is available.
+    CHECK_C_COMPILER_FLAG(-mavx512f IS_mavx512f_AVAILABLE)
+
+    IF(IS_mavx512f_AVAILABLE)
+        TRY_COMPILE(HAVE_AVX512FINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVX512FINTRIN.c COMPILE_DEFINITIONS "-mavx512f")
+        IF(HAVE_AVX512FINTRIN_COMPILE)
+            SET(HAVE_AVX512FINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_AVX512FINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx512f")
+            SET(CMAKE_C_FLAGS_AVX512F "-mavx512f")
+            MESSAGE(STATUS "avx512f is available.")
+        ELSE(HAVE_AVX512FINTRIN_COMPILE)
+            SET(HAVE_AVX512FINTRIN OFF)
+            MESSAGE(STATUS "avx512f is not available.")
+        ENDIF(HAVE_AVX512FINTRIN_COMPILE)
+    ENDIF(IS_mavx512f_AVAILABLE)
+
+    #Check if -maes & -mpclmul are available for AESNI instructions set and PCLMULQDQ.
+    CHECK_C_COMPILER_FLAG(-maes IS_maes_AVAILABLE)
+    CHECK_C_COMPILER_FLAG(-mpclmul IS_mpclmul_AVAILABLE)
+
+    IF(IS_maes_AVAILABLE AND IS_mpclmul_AVAILABLE)
+        TRY_COMPILE(HAVE_WMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_WMMINTRIN.c COMPILE_DEFINITIONS "-maes -mpclmul")
+        IF(HAVE_WMMINTRIN_COMPILE)
+            SET(HAVE_WMMINTRIN ON)
+            ADD_DEFINITIONS("-DHAVE_WMMINTRIN_H=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -mpclmul")
+            SET(CMAKE_C_FLAGS_AESNI "-maes -mpclmul")
+            MESSAGE(STATUS "aesni is available.")
+        ELSE(HAVE_WMMINTRIN_COMPILE)
+            SET(HAVE_WMMINTRIN OFF)
+            MESSAGE(STATUS "aesni is not available.")
+        ENDIF(HAVE_WMMINTRIN_COMPILE)
+    ENDIF(IS_maes_AVAILABLE AND IS_mpclmul_AVAILABLE)
+
+    #Check if -mrdrnd is available.
+    CHECK_C_COMPILER_FLAG(-mrdrnd IS_mrdrnd_AVAILABLE)
+
+    IF(IS_mrdrnd_AVAILABLE)
+        TRY_COMPILE(HAVE_RDRAND_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_RDRAND.c COMPILE_DEFINITIONS "-mrdrnd")
+        IF(HAVE_RDRAND_COMPILE)
+            SET(HAVE_RDRAND ON)
+            ADD_DEFINITIONS("-DHAVE_RDRAND=1")
+            #SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mrdrnd")
+            SET(CMAKE_C_FLAGS_RDRND "-mrdrnd")
+            MESSAGE(STATUS "rdrnd is available.")
+        ELSE(HAVE_RDRAND_COMPILE)
+            SET(HAVE_RDRAND OFF)
+            MESSAGE(STATUS "rdrnd is not available.")
+        ENDIF(HAVE_RDRAND_COMPILE)
+    ENDIF(IS_mrdrnd_AVAILABLE)
+
+    TRY_COMPILE(HAVE_XGETBV_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_XGETBV.c)
+    IF(HAVE_XGETBV_COMPILE)
+        MESSAGE(STATUS "_xgetbv() is available")
+        ADD_DEFINITIONS("-DHAVE__XGETBV=1")
+    ELSE(HAVE_XGETBV_COMPILE)
+        MESSAGE(STATUS "_xgetbv() isn't available")
+    ENDIF(HAVE_XGETBV_COMPILE)
+
+    TRY_COMPILE(HAVE_INLINE_ASM_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_INLINE_ASM.c)
+    IF(HAVE_INLINE_ASM_COMPILE)
+        MESSAGE(STATUS "inline asm code can be used")
+        ADD_DEFINITIONS("-DHAVE_INLINE_ASM=1")
+    ELSE(HAVE_INLINE_ASM_COMPILE)
+        MESSAGE(STATUS "inline asm code can't be used")
+    ENDIF(HAVE_INLINE_ASM_COMPILE)
+
+    IF(NOT SODIUM_DISABLE_ASM)
+
+        SET(ASM_HIDE_SYMBOL "unsupported")
+
+        TRY_COMPILE(HAVE_PRIVATE_EXTERN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_PRIVATE_EXTERN.c)
+        IF(HAVE_PRIVATE_EXTERN_COMPILE)
+            MESSAGE(STATUS "The .private_extern asm directive is supported")
+            SET(ASM_HIDE_SYMBOL ".private_extern")
+        ELSE(HAVE_PRIVATE_EXTERN_COMPILE)
+
+            TRY_COMPILE(HAVE_HIDDEN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_HIDDEN.c)
+            IF(HAVE_HIDDEN_COMPILE)
+                MESSAGE(STATUS "The .hidden asm directive is supported")
+                SET(ASM_HIDE_SYMBOL ".hidden")
+            ELSE(HAVE_HIDDEN_COMPILE)
+                MESSAGE(STATUS "Unable to reliably tag symbols as private")
+            ENDIF(HAVE_HIDDEN_COMPILE)
+
+        ENDIF(HAVE_PRIVATE_EXTERN_COMPILE)
+
+        IF(NOT ASM_HIDE_SYMBOL STREQUAL "unsupported")
+            MESSAGE(STATUS "Define ASM_HIDE_SYMBOL to ${ASM_HIDE_SYMBOL}")
+            ADD_DEFINITIONS("-DASM_HIDE_SYMBOL=${ASM_HIDE_SYMBOL}")
+        ENDIF(NOT ASM_HIDE_SYMBOL STREQUAL "unsupported")
+
+    ENDIF(NOT SODIUM_DISABLE_ASM)
+
+    TRY_COMPILE(CPU_UNALIGNED_ACCESS_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/CPU_UNALIGNED_ACCESS.c)
+    IF(CPU_UNALIGNED_ACCESS_COMPILE)
+        MESSAGE(STATUS "unaligned memory access is supported")
+        ADD_DEFINITIONS("-DCPU_UNALIGNED_ACCESS=1")
+    ELSE(CPU_UNALIGNED_ACCESS_COMPILE)
+        MESSAGE(STATUS "unaligned memory access isn't supported")
+    ENDIF(CPU_UNALIGNED_ACCESS_COMPILE)
+
+    TRY_COMPILE(HAVE_ATOMIC_OPS_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_ATOMIC_OPS.c)
+    IF(HAVE_ATOMIC_OPS_COMPILE)
+        MESSAGE(STATUS "atomic operations are supported")
+        ADD_DEFINITIONS("-DHAVE_ATOMIC_OPS=1")
+    ELSE(HAVE_ATOMIC_OPS_COMPILE)
+        MESSAGE(STATUS "atomic operations are not supported")
+    ENDIF(HAVE_ATOMIC_OPS_COMPILE)
+
+ENDIF(NOT MSVC)
 
 MESSAGE("---------------- DONE WITH SYSTEM CHECKS. -----------------")
 MESSAGE("                                                           ")
@@ -341,8 +592,6 @@ MACRO(CHECK_COMPILER_FLAG)
 ENDMACRO(CHECK_COMPILER_FLAG)
 
 MESSAGE("------------- PERFORMING COMPILER FLAG CHECKS. ------------")
-
-INCLUDE(CheckCCompilerFlag)
 
 #Check if -D_FORTIFY_SOURCE=2 is available.
 CHECK_COMPILER_FLAG(D_FORTIFY_SOURCE=2)
@@ -475,235 +724,6 @@ ELSE(MSVC)
 
     #Check if -ftls-model=local-dynamic is available.
     CHECK_COMPILER_FLAG(-ftls-model=local-dynamic)
-
-    #Check if -mmmx is available.
-    CHECK_C_COMPILER_FLAG(-mmmx IS_mmmx_AVAILABLE)
-
-    IF(IS_mmmx_AVAILABLE)
-        TRY_COMPILE(HAVE_MMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_MMINTRIN.c COMPILE_DEFINITIONS "-mmmx")
-        IF(HAVE_MMINTRIN_COMPILE)
-            SET(HAVE_MMINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_MMINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mmmx")
-            MESSAGE(STATUS "mmx is available.")
-        ELSE(HAVE_MMINTRIN_COMPILE)
-            SET(HAVE_MMINTRIN OFF)
-            MESSAGE(STATUS "mmx is not available.")
-        ENDIF(HAVE_MMINTRIN_COMPILE)
-    ENDIF(IS_mmmx_AVAILABLE)
-
-    #Check if -msse2 is available.
-    CHECK_C_COMPILER_FLAG(-msse2 IS_msse2_AVAILABLE)
-
-    IF(IS_msse2_AVAILABLE)
-        TRY_COMPILE(HAVE_EMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_EMMINTRIN.c COMPILE_DEFINITIONS "-msse2")
-        IF(HAVE_EMMINTRIN_COMPILE)
-            SET(HAVE_EMMINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_EMMINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
-            MESSAGE(STATUS "sse2 is available.")
-        ELSE(HAVE_EMMINTRIN_COMPILE)
-            SET(HAVE_EMMINTRIN OFF)
-            MESSAGE(STATUS "sse2 is not available.")
-        ENDIF(HAVE_EMMINTRIN_COMPILE)
-    ENDIF(IS_msse2_AVAILABLE)
-
-    #Check if -msse3 is available.
-    CHECK_C_COMPILER_FLAG(-msse3 IS_msse3_AVAILABLE)
-
-    IF(IS_msse3_AVAILABLE)
-        TRY_COMPILE(HAVE_PMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_PMMINTRIN.c COMPILE_DEFINITIONS "-msse3")
-        IF(HAVE_PMMINTRIN_COMPILE)
-            SET(HAVE_PMMINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_PMMINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3")
-            MESSAGE(STATUS "sse3 is available.")
-        ELSE(HAVE_PMMINTRIN_COMPILE)
-            SET(HAVE_PMMINTRIN OFF)
-            MESSAGE(STATUS "sse3 is not available.")
-        ENDIF(HAVE_PMMINTRIN_COMPILE)
-    ENDIF(IS_msse3_AVAILABLE)
-
-    #Check if -mssse3 is available.
-    CHECK_C_COMPILER_FLAG(-mssse3 IS_mssse3_AVAILABLE)
-
-    IF(IS_mssse3_AVAILABLE)
-        TRY_COMPILE(HAVE_TMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_TMMINTRIN.c COMPILE_DEFINITIONS "-mssse3")
-        IF(HAVE_TMMINTRIN_COMPILE)
-            SET(HAVE_TMMINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_TMMINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mssse3")
-            MESSAGE(STATUS "ssse3 is available.")
-        ELSE(HAVE_TMMINTRIN_COMPILE)
-            SET(HAVE_TMMINTRIN OFF)
-            MESSAGE(STATUS "ssse3 is not available.")
-        ENDIF(HAVE_TMMINTRIN_COMPILE)
-    ENDIF(IS_mssse3_AVAILABLE)
-
-    #Check if -msse4.1 is available.
-    CHECK_C_COMPILER_FLAG(-msse4.1 IS_msse41_AVAILABLE)
-
-    IF(IS_msse41_AVAILABLE)
-        TRY_COMPILE(HAVE_SMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_SMMINTRIN.c COMPILE_DEFINITIONS "-msse4.1")
-        IF(HAVE_SMMINTRIN_COMPILE)
-            SET(HAVE_SMMINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_SMMINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.1")
-            MESSAGE(STATUS "sse4.1 is available.")
-        ELSE(HAVE_SMMINTRIN_COMPILE)
-            SET(HAVE_SMMINTRIN OFF)
-            MESSAGE(STATUS "sse4.1 is not available.")
-        ENDIF(HAVE_SMMINTRIN_COMPILE)
-    ENDIF(IS_msse41_AVAILABLE)
-
-    #Check if -mavx is available.
-    CHECK_C_COMPILER_FLAG(-mavx IS_mavx_AVAILABLE)
-
-    IF(IS_mavx_AVAILABLE)
-        TRY_COMPILE(HAVE_AVXINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVXINTRIN.c COMPILE_DEFINITIONS "-mavx")
-        IF(HAVE_AVXINTRIN_COMPILE)
-            SET(HAVE_AVXINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_AVXINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx")
-            MESSAGE(STATUS "avx is available.")
-        ELSE(HAVE_AVXINTRIN_COMPILE)
-            SET(HAVE_AVXINTRIN OFF)
-            MESSAGE(STATUS "avx is not available.")
-        ENDIF(HAVE_AVXINTRIN_COMPILE)
-    ENDIF(IS_mavx_AVAILABLE)
-
-    #Check if -mavx2 is available.
-    CHECK_C_COMPILER_FLAG(-mavx2 IS_mavx2_AVAILABLE)
-
-    IF(IS_mavx2_AVAILABLE)
-        TRY_COMPILE(HAVE_AVX2INTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVX2INTRIN.c COMPILE_DEFINITIONS "-mavx2")
-        IF(HAVE_AVX2INTRIN_COMPILE)
-            SET(HAVE_AVX2INTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_AVX2INTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx2")
-            MESSAGE(STATUS "avx2 is available.")
-
-            TRY_COMPILE(HAVE_AVX2INTRIN_MM256_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVX2INTRIN_MM256.c)
-            IF(HAVE_AVX2INTRIN_MM256_COMPILE)
-                MESSAGE(STATUS "_mm_broadcastsi128_si256 is correctly defined")
-            ELSE(HAVE_AVX2INTRIN_MM256_COMPILE)
-                ADD_DEFINITIONS("-D_mm256_broadcastsi128_si256=_mm_broadcastsi128_si256")
-                MESSAGE(STATUS "Define to the local name of _mm256_broadcastsi128_si256 to _mm_broadcastsi128_si256")
-            ENDIF(HAVE_AVX2INTRIN_MM256_COMPILE)
-
-        ELSE(HAVE_AVX2INTRIN_COMPILE)
-            SET(HAVE_AVX2INTRIN OFF)
-            MESSAGE(STATUS "avx2 is not available.")
-        ENDIF(HAVE_AVX2INTRIN_COMPILE)
-    ENDIF(IS_mavx2_AVAILABLE)
-
-    #Check if -mavx512f is available.
-    CHECK_C_COMPILER_FLAG(-mavx512f IS_mavx512f_AVAILABLE)
-
-    IF(IS_mavx512f_AVAILABLE)
-        TRY_COMPILE(HAVE_AVX512FINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_AVX512FINTRIN.c COMPILE_DEFINITIONS "-mavx512f")
-        IF(HAVE_AVX512FINTRIN_COMPILE)
-            SET(HAVE_AVX512FINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_AVX512FINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mavx512f")
-            MESSAGE(STATUS "avx512f is available.")
-        ELSE(HAVE_AVX512FINTRIN_COMPILE)
-            SET(HAVE_AVX512FINTRIN OFF)
-            MESSAGE(STATUS "avx512f is not available.")
-        ENDIF(HAVE_AVX512FINTRIN_COMPILE)
-    ENDIF(IS_mavx512f_AVAILABLE)
-
-    #Check if -maes & -mpclmul are available for AESNI instructions set and PCLMULQDQ.
-    CHECK_C_COMPILER_FLAG(-maes IS_maes_AVAILABLE)
-    CHECK_C_COMPILER_FLAG(-mpclmul IS_mpclmul_AVAILABLE)
-
-    IF(IS_maes_AVAILABLE AND IS_mpclmul_AVAILABLE)
-        TRY_COMPILE(HAVE_WMMINTRIN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_WMMINTRIN.c COMPILE_DEFINITIONS "-maes -mpclmul")
-        IF(HAVE_WMMINTRIN_COMPILE)
-            SET(HAVE_WMMINTRIN ON)
-            ADD_DEFINITIONS("-DHAVE_WMMINTRIN_H=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes -mpclmul")
-            MESSAGE(STATUS "aesni is available.")
-        ELSE(HAVE_WMMINTRIN_COMPILE)
-            SET(HAVE_WMMINTRIN OFF)
-            MESSAGE(STATUS "aesni is not available.")
-        ENDIF(HAVE_WMMINTRIN_COMPILE)
-    ENDIF(IS_maes_AVAILABLE AND IS_mpclmul_AVAILABLE)
-
-    #Check if -mrdrnd is available.
-    CHECK_C_COMPILER_FLAG(-mrdrnd IS_mrdrnd_AVAILABLE)
-
-    IF(IS_mrdrnd_AVAILABLE)
-        TRY_COMPILE(HAVE_RDRAND_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_RDRAND.c COMPILE_DEFINITIONS "-mrdrnd")
-        IF(HAVE_RDRAND_COMPILE)
-            SET(HAVE_RDRAND ON)
-            ADD_DEFINITIONS("-DHAVE_RDRAND=1")
-            SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mrdrnd")
-            MESSAGE(STATUS "rdrnd is available.")
-        ELSE(HAVE_RDRAND_COMPILE)
-            SET(HAVE_RDRAND OFF)
-            MESSAGE(STATUS "rdrnd is not available.")
-        ENDIF(HAVE_RDRAND_COMPILE)
-    ENDIF(IS_mrdrnd_AVAILABLE)
-
-    TRY_COMPILE(HAVE_XGETBV_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_XGETBV.c)
-    IF(HAVE_XGETBV_COMPILE)
-        MESSAGE(STATUS "_xgetbv() is available")
-        ADD_DEFINITIONS("-DHAVE__XGETBV=1")
-    ELSE(HAVE_XGETBV_COMPILE)
-        MESSAGE(STATUS "_xgetbv() isn't available")
-    ENDIF(HAVE_XGETBV_COMPILE)
-
-    TRY_COMPILE(HAVE_INLINE_ASM_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_INLINE_ASM.c)
-    IF(HAVE_INLINE_ASM_COMPILE)
-        MESSAGE(STATUS "inline asm code can be used")
-        ADD_DEFINITIONS("-DHAVE_INLINE_ASM=1")
-    ELSE(HAVE_INLINE_ASM_COMPILE)
-        MESSAGE(STATUS "inline asm code can't be used")
-    ENDIF(HAVE_INLINE_ASM_COMPILE)
-
-    IF(NOT SODIUM_DISABLE_ASM)
-
-        SET(ASM_HIDE_SYMBOL "unsupported")
-
-        TRY_COMPILE(HAVE_PRIVATE_EXTERN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_PRIVATE_EXTERN.c)
-        IF(HAVE_PRIVATE_EXTERN_COMPILE)
-            MESSAGE(STATUS "The .private_extern asm directive is supported")
-            SET(ASM_HIDE_SYMBOL ".private_extern")
-        ELSE(HAVE_PRIVATE_EXTERN_COMPILE)
-
-            TRY_COMPILE(HAVE_HIDDEN_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_HIDDEN.c)
-            IF(HAVE_HIDDEN_COMPILE)
-                MESSAGE(STATUS "The .hidden asm directive is supported")
-                SET(ASM_HIDE_SYMBOL ".hidden")
-            ELSE(HAVE_HIDDEN_COMPILE)
-                MESSAGE(STATUS "Unable to reliably tag symbols as private")
-            ENDIF(HAVE_HIDDEN_COMPILE)
-
-        ENDIF(HAVE_PRIVATE_EXTERN_COMPILE)
-
-        IF(NOT ASM_HIDE_SYMBOL STREQUAL "unsupported")
-            MESSAGE(STATUS "Define ASM_HIDE_SYMBOL to ${ASM_HIDE_SYMBOL}")
-            ADD_DEFINITIONS("-DASM_HIDE_SYMBOL=${ASM_HIDE_SYMBOL}")
-        ENDIF(NOT ASM_HIDE_SYMBOL STREQUAL "unsupported")
-
-    ENDIF(NOT SODIUM_DISABLE_ASM)
-
-    TRY_COMPILE(CPU_UNALIGNED_ACCESS_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/CPU_UNALIGNED_ACCESS.c)
-    IF(CPU_UNALIGNED_ACCESS_COMPILE)
-        MESSAGE(STATUS "unaligned memory access is supported")
-        ADD_DEFINITIONS("-DCPU_UNALIGNED_ACCESS=1")
-    ELSE(CPU_UNALIGNED_ACCESS_COMPILE)
-        MESSAGE(STATUS "unaligned memory access isn't supported")
-    ENDIF(CPU_UNALIGNED_ACCESS_COMPILE)
-
-    TRY_COMPILE(HAVE_ATOMIC_OPS_COMPILE ${CMAKE_CURRENT_BINARY_DIR}/build ${CMAKE_CURRENT_SOURCE_DIR}/test/HAVE_ATOMIC_OPS.c)
-    IF(HAVE_ATOMIC_OPS_COMPILE)
-        MESSAGE(STATUS "atomic operations are supported")
-        ADD_DEFINITIONS("-DHAVE_ATOMIC_OPS=1")
-    ELSE(HAVE_ATOMIC_OPS_COMPILE)
-        MESSAGE(STATUS "atomic operations are not supported")
-    ENDIF(HAVE_ATOMIC_OPS_COMPILE)
 
     # Macro says flag is available but ld says unknown flag
     IF(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -874,7 +894,6 @@ ENDIF(SODIUM_ENABLE_BLOCKING_RANDOM)
 # └──────────────────────────────────────────────────────────────────┘
 
 IF(NOT EMSCRIPTEN)
-
     SET(librdrand_HEADERS ${librdrand_HEADERS}
         ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium/randombytes_sysrandom.h
     )
@@ -887,11 +906,11 @@ ENDIF(NOT EMSCRIPTEN)
 # │                           LIBAESNI                               │
 # └──────────────────────────────────────────────────────────────────┘
 
-    SET(libaesni_HEADERS ${libaesni_HEADERS}
-    )
-    SET(libaesni_SOURCE ${libaesni_SOURCE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c
-    )
+SET(libaesni_HEADERS ${libaesni_HEADERS}
+)
+SET(libaesni_SOURCE ${libaesni_SOURCE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c
+)
 SET(LIBAESNI_TARGET libaesni)
 
 # ┌──────────────────────────────────────────────────────────────────┐
@@ -928,7 +947,7 @@ ENDIF(NOT HAVE_AMD64_ASM_COMPILE)
 # │                            LIBSSE3                               │
 # └──────────────────────────────────────────────────────────────────┘
 
-SET(libsse3_HEADERS ${libsse3_HEADERS}
+SET(libssse3_HEADERS ${libssse3_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ssse3.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_pwhash/argon2/blamka-round-ssse3.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-ssse3.h
@@ -937,7 +956,7 @@ SET(libsse3_HEADERS ${libsse3_HEADERS}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/chacha20/dolbeau/u4.h
 )
 
-SET(libsse3_SOURCE ${libsse3_SOURCE}
+SET(libssse3_SOURCE ${libssse3_SOURCE}
 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ssse3.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_pwhash/argon2/argon2-fill-block-ssse3.c
@@ -1023,70 +1042,107 @@ if (MSVC AND (MSVC_VERSION GREATER 1900))
     endif()
 endif()
 
-IF(SODIUM_BUILD_SHARED)
+INCLUDE(CMakeParseArguments)
 
-    ADD_LIBRARY(${SODIUM_TARGET} SHARED
-        ${libsodium_HEADERS}
-        ${libsodium_SOURCE}
-        ${librdrand_HEADERS}
-        ${librdrand_SOURCE}
-        ${libaesni_HEADERS}
-        ${libaesni_SOURCE}
-        ${libsse2_HEADERS}
-        ${libsse2_SOURCE}
-        ${libsse3_HEADERS}
-        ${libsse3_SOURCE}
-        ${libsse41_HEADERS}
-        ${libsse41_SOURCE}
-        ${libavx2_HEADERS}
-        ${libavx2_SOURCE}
-        ${libavx512f_HEADERS}
-        ${libavx512f_SOURCE}
-        )
+MACRO(SODIUM_ADD_LIBRARY)
+    SET(OPTIONS )
+    SET(ONE_VALUE_ARGS TARGET)
+    SET(MULTI_VALUES_ARGS SOURCES DEPENDENCIES FLAGS)
 
-    TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} PRIVATE "-DSODIUM_DLL_EXPORT")
-ELSE(SODIUM_BUILD_SHARED)
-    ADD_LIBRARY(${SODIUM_TARGET} STATIC
-        ${libsodium_HEADERS}
-        ${libsodium_SOURCE}
-        ${librdrand_HEADERS}
-        ${librdrand_SOURCE}
-        ${libaesni_HEADERS}
-        ${libaesni_SOURCE}
-        ${libsse2_HEADERS}
-        ${libsse2_SOURCE}
-        ${libsse3_HEADERS}
-        ${libsse3_SOURCE}
-        ${libsse41_HEADERS}
-        ${libsse41_SOURCE}
-        ${libavx2_HEADERS}
-        ${libavx2_SOURCE}
-        ${libavx512f_HEADERS}
-        ${libavx512f_SOURCE}
-        )
-    TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} PUBLIC "-DSODIUM_STATIC")
-ENDIF(SODIUM_BUILD_SHARED)
+    CMAKE_PARSE_ARGUMENTS(SODIUM_ADD_LIBRARY "${OPTIONS}" "${ONE_VALUE_ARGS}" "${MULTI_VALUES_ARGS}" ${ARGN} )
 
-# Public interface only requires #include <sodium.h>
-TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include> $<INSTALL_INTERFACE:${SODIUM_INSTALL_PREFIX}>)
-# Required by c core files
-TARGET_INCLUDE_DIRECTORIES(${SODIUM_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium)
+    MESSAGE(STATUS "Add Library : ${SODIUM_ADD_LIBRARY_TARGET}")
 
-# Put the target inside the correct folder for superbuild
-SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES FOLDER ${SODIUM_FOLDER_PREFIX})
+    IF(SODIUM_BUILD_SHARED)
 
-# Avoid liblibsodium on darwin for example.
-SET_TARGET_PROPERTIES(${SODIUM_TARGET} PROPERTIES PREFIX "")
+        ADD_LIBRARY(${SODIUM_ADD_LIBRARY_TARGET} SHARED ${SODIUM_ADD_LIBRARY_SOURCES})
+        TARGET_COMPILE_DEFINITIONS(${SODIUM_ADD_LIBRARY_TARGET} PRIVATE "-DSODIUM_DLL_EXPORT")
 
-# The build system was properly configured
-TARGET_COMPILE_DEFINITIONS(${SODIUM_TARGET} PRIVATE "-DCONFIGURED=1")
+    ELSE(SODIUM_BUILD_SHARED)
+
+        ADD_LIBRARY(${SODIUM_ADD_LIBRARY_TARGET} STATIC ${SODIUM_ADD_LIBRARY_SOURCES})
+        TARGET_COMPILE_DEFINITIONS(${SODIUM_ADD_LIBRARY_TARGET} PUBLIC "-DSODIUM_STATIC")
+
+    ENDIF(SODIUM_BUILD_SHARED)
+
+    # Public interface only requires #include <sodium.h>
+    TARGET_INCLUDE_DIRECTORIES(${SODIUM_ADD_LIBRARY_TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include> $<INSTALL_INTERFACE:${SODIUM_INSTALL_PREFIX}>)
+    # Required by c core files
+    TARGET_INCLUDE_DIRECTORIES(${SODIUM_ADD_LIBRARY_TARGET} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/include/sodium)
+
+    # Put the target inside the correct folder for superbuild
+    SET_TARGET_PROPERTIES(${SODIUM_ADD_LIBRARY_TARGET} PROPERTIES FOLDER ${SODIUM_FOLDER_PREFIX})
+
+    # Avoid liblibsodium on darwin for example.
+    SET_TARGET_PROPERTIES(${SODIUM_ADD_LIBRARY_TARGET} PROPERTIES PREFIX "")
+
+    # The build system was properly configured
+    TARGET_COMPILE_DEFINITIONS(${SODIUM_ADD_LIBRARY_TARGET} PRIVATE "-DCONFIGURED=1")
+
+    IF(SODIUM_ADD_LIBRARY_FLAGS)
+        MESSAGE(STATUS "${SODIUM_ADD_LIBRARY_TARGET} flags: ${SODIUM_ADD_LIBRARY_FLAGS}")
+        TARGET_COMPILE_OPTIONS(${SODIUM_ADD_LIBRARY_TARGET} PRIVATE ${SODIUM_ADD_LIBRARY_FLAGS})
+    ENDIF(SODIUM_ADD_LIBRARY_FLAGS)
+
+    IF(SODIUM_ADD_LIBRARY_DEPENDENCIES)
+        MESSAGE(STATUS "${SODIUM_ADD_LIBRARY_TARGET} dependencies: ${SODIUM_ADD_LIBRARY_DEPENDENCIES}")
+        TARGET_LINK_LIBRARIES(${SODIUM_ADD_LIBRARY_TARGET} PUBLIC ${SODIUM_ADD_LIBRARY_DEPENDENCIES})
+    ENDIF(SODIUM_ADD_LIBRARY_DEPENDENCIES)
+
+ENDMACRO(SODIUM_ADD_LIBRARY)
+
+
+MESSAGE("---------------- LIBSODIUM TARGETS. -----------------")
+
+SODIUM_ADD_LIBRARY(TARGET ${SODIUM_AESNI_TARGET}
+    SOURCES ${libaesni_HEADERS} ${libaesni_SOURCE}
+    FLAGS "${CMAKE_C_FLAGS_SSE2} ${CMAKE_C_FLAGS_SSSE3} ${CMAKE_C_FLAGS_AESNI}")
+
+SODIUM_ADD_LIBRARY(TARGET ${SODIUM_SSE2_TARGET}
+    SOURCES ${libsse2_HEADERS} ${libsse2_SOURCE}
+    FLAGS "${CMAKE_C_FLAGS_SSE2}")
+
+SODIUM_ADD_LIBRARY(TARGET ${SODIUM_SSSE3_TARGET}
+    SOURCES ${libssse3_HEADERS} ${libssse3_SOURCE}
+    FLAGS "${CMAKE_C_FLAGS_SSE2} ${CMAKE_C_FLAGS_SSSE3}")
+
+SODIUM_ADD_LIBRARY(TARGET ${SODIUM_SSE41_TARGET}
+    SOURCES ${libsse41_HEADERS} ${libsse41_SOURCE}
+    FLAGS "${CMAKE_C_FLAGS_SSE2} ${CMAKE_C_FLAGS_SSSE3} ${CMAKE_C_FLAGS_SSE41}")
+
+SODIUM_ADD_LIBRARY(TARGET ${SODIUM_AVX2_TARGET}
+    SOURCES ${libavx2_HEADERS} ${libavx2_SOURCE}
+    FLAGS "${CMAKE_C_FLAGS_SSE2} ${CMAKE_C_FLAGS_SSSE3} ${CMAKE_C_FLAGS_SSE41} ${CMAKE_C_FLAGS_AVX} ${CMAKE_C_FLAGS_AVX2}")
+
+SODIUM_ADD_LIBRARY(TARGET ${SODIUM_AVX512F_TARGET}
+    SOURCES ${libavx512f_HEADERS} ${libavx512f_SOURCE}
+    FLAGS "${CMAKE_C_FLAGS_SSE2} ${CMAKE_C_FLAGS_SSSE3} ${CMAKE_C_FLAGS_SSE41} ${CMAKE_C_FLAGS_AVX} ${CMAKE_C_FLAGS_AVX2} ${CMAKE_C_FLAGS_AVX512F}")
+
+IF(NOT EMSCRIPTEN)
+    SODIUM_ADD_LIBRARY(TARGET ${SODIUM_RDRAND_TARGET}
+        SOURCES ${librdrand_HEADERS} ${librdrand_SOURCE}
+        FLAGS ${CMAKE_C_FLAGS_RDRND})
+    SET(_SODIUM_RDRAND_TARGET ${SODIUM_RDRAND_TARGET})
+ENDIF(NOT EMSCRIPTEN)
+
+SODIUM_ADD_LIBRARY(TARGET ${SODIUM_TARGET}
+    SOURCES ${libsodium_HEADERS} ${libsodium_SOURCE}
+    DEPENDENCIES ${SODIUM_AESNI_TARGET} ${SODIUM_SSE2_TARGET} ${SODIUM_SSSE3_TARGET} ${SODIUM_SSE41_TARGET} ${SODIUM_AVX2_TARGET} ${SODIUM_AVX512F_TARGET} ${_SODIUM_RDRAND_TARGET})
+
+MESSAGE("---------------- DONE WITH TARGETS. -----------------")
+MESSAGE("                                                     ")
 
 # ┌──────────────────────────────────────────────────────────────────┐
 # │                            TESTS                                 │
 # └──────────────────────────────────────────────────────────────────┘
 
 IF(SODIUM_ENABLE_TESTS)
+    MESSAGE("---------------- LIBSODIUM TESTS. -------------------")
+
     INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/CTestLists.txt)
+
+    MESSAGE("---------------- DONE WITH TESTS. -------------------")
+    MESSAGE("                                                     ")
 ENDIF(SODIUM_ENABLE_TESTS)
 
 # ┌──────────────────────────────────────────────────────────────────┐
@@ -1094,5 +1150,10 @@ ENDIF(SODIUM_ENABLE_TESTS)
 # └──────────────────────────────────────────────────────────────────┘
 
 IF(SODIUM_ENABLE_INSTALL)
+    MESSAGE("---------------- LIBSODIUM EXAMPLES. ----------------")
+
     INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/CInstallLists.txt)
+
+    MESSAGE("---------------- DONE WITH EXAMPLES. ----------------")
+    MESSAGE("                                                     ")
 ENDIF(SODIUM_ENABLE_INSTALL)
