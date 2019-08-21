@@ -295,7 +295,6 @@ ELSE(SODIUM_DISABLE_ASM)
 
             SET(libsodium_HEADERS ${libsodium_HEADERS}
                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6.h
-                ${CMAKE_CURRENT_SOURCE_DIR}/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm_namespace.h
             )
 
             SET(libsodium_SOURCE ${libsodium_SOURCE}
