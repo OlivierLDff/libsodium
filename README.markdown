@@ -6,6 +6,8 @@
 ![libsodium](https://raw.github.com/jedisct1/libsodium/master/logo.png)
 ============
 
+*Aim of this fork is to provide a CMake support for libsodium.*
+
 Sodium is a new, easy-to-use software library for encryption,
 decryption, signatures, password hashing and more.
 
@@ -19,6 +21,92 @@ higher-level cryptographic tools.
 Sodium supports a variety of compilers and operating systems,
 including Windows (with MingW or Visual Studio, x86 and x64), iOS, Android,
 as well as Javascript and Webassembly.
+
+## CMake Configuration
+
+In source and out of source build is supported. In source is preferred for simplicity.
+
+```bash
+# Clone the repository
+git clone https://github.com/OlivierLDff/libsodium
+# Enter the folder and create a build folder (build folder is added in .gitignore)
+cd libsodium && mkdir build && cd build
+# Run cmake
+cmake ..
+```
+
+### Parameters
+
+CMake support multiple options.
+
+- **SODIUM_TARGET**: The name of the target that will be generated. *Default "libsodium"*.
+- **SODIUM_BUILD_SHARED** : Build the library dynamically (ON/TRUE) or statically (OFF/FALSE).
+- **SODIUM_FOLDER_PREFIX**: Prefix folder for all libsodium generated targets in generated project (only decorative). *Default "libsodium".*
+- **SODIUM_ENABLE_BLOCKING_RANDOM** : Enable this switch only if /dev/urandom is totally broken on the target platform.
+- **SODIUM_ENABLE_MINIMAL_BUILD** : Only compile the minimum set of functions required for the high-level API.
+- **SODIUM_DISABLE_ASM** : Disable AMD64 assembly implementations.
+- **SODIUM_DISABLE_PIE** : Do not produce position independent executables.
+- **SODIUM_DISABLE_SSP** : Do not compile with -fstack-protector.
+- **SODIUM_ENABLE_TESTS**: Enable the tests. This will create a target `${SODIUM_TESTS_PREFIX}_test`. *Default "OFF". [ON/OFF]*.
+- **SODIUM_TESTS_PREFIX**: Prefix for every tests to avoid naming clashes in superbuild. *Default "libsodium".*
+- **SODIUM_ENABLE_INSTALL**: Enable install target. *Default "OFF". [ON/OFF]*.
+- **SODIUM_INSTALL_PREFIX**: Folder for all libsodium headers in the install folder. *Default "libsodium".*
+
+#### Windows specific option
+
+- **SODIUM_USE_CONTROL_FLOW_GUARD** : "Enable /guard:cf for msvc"
+- **SODIUM_USE_QSPECTRE** : "Enable /Qspectre options for msvc."
+
+### Build
+
+Depending on the generator use, you can use the generator specific command like `make` or `ninja` or `msbuild`. When building with a one release type generator you might need to add `-DCMAKE_BUILD_TYPE=Release` or `-DCMAKE_BUILD_TYPE=Debug`.
+
+More generally you can simply use cmake build command.
+
+```bash
+## Equivalent of make all for any generator
+cmake --build .
+## Equivalent of make libsodium in debug mode
+cmake --build . --target libsodium
+## Equivalent of make libsodium in release mode
+cmake --build . --target libsodium --config Release
+```
+
+The libsodium will be available in the `lib` folder
+
+### Install
+
+An install target is available for conveniance and will deploy libsodium on your system or any where you want.
+
+```bash
+## Specifify a custom install folder (optionnal)
+cmake -DSODIUM_ENABLE_INSTALL=ON -DCMAKE_INSTALL_PREFIX="/path/to/my/install/dir" ..
+## Equivalent of make install (Debug)
+cmake --build . --target install --config Debug
+## Equivalent of make install (Release)
+cmake --build . --target install --config Release
+```
+
+You can choose the install directory by setting **CMAKE_INSTALL_PREFIX** when configuring the project.
+By default on Unix system it is set to `/usr/local` and on Windows to `c:/Program Files/libsodium`.
+
+In this folder you will find an include folder ready to be included by another application. This is a copy of the `include` folder of this repository.
+A `lib` will be created with all the generated libraries. A `cmake` folder contain all the CMake scripts to find the package.
+
+The installation prefix is also added to `CMAKE_SYSTEM_PREFIX_PATH` so that **find_package()**, **find_program()**, **find_library()**, **find_path()**, and **find_file()** will search the prefix for other software.
+
+### Run Tests
+
+To run the tests you need to compile the library as static, and set the `SODIUM_ENABLE_TEST` flag to ON. Testing is done using CTest framework.
+
+```bash
+## Enable the tests
+cmake -DSODIUM_ENABLE_TESTS=ON ..
+## Build all the tests and executables
+cmake --build . --config Release
+# Then run the tests
+ctest -C Release
+```
 
 ## Documentation
 
