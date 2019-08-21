@@ -667,7 +667,12 @@ ELSE(MSVC)
     #Check if -Wdiv-by-zero is available.
     CHECK_COMPILER_FLAG(Wdiv-by-zero)
 
-    #Check if -Wsometimes-uninitialized is available.
+    CHECK_COMPILER_FLAG(Wduplicated-branches)
+    CHECK_COMPILER_FLAG(Wduplicated-cond)
+
+    #Check if -Wmaybe-uninitialized is available.
+    CHECK_COMPILER_FLAG(Wmaybe-uninitialized)
+
     CHECK_COMPILER_FLAG(Wsometimes-uninitialized)
 
     #Check if -Wbad-function-cast is available.
@@ -687,6 +692,7 @@ ELSE(MSVC)
 
     #Check if -Wformat=2 is available.
     CHECK_COMPILER_FLAG(Wformat=2)
+    CHECK_COMPILER_FLAG(Wlogical-op)
 
     #Check if -Wimplicit is available.
     CHECK_COMPILER_FLAG(Wimplicit)
@@ -694,8 +700,24 @@ ELSE(MSVC)
     #Check if -Wmissing-declarations is available.
     CHECK_COMPILER_FLAG(Wmissing-declarations)
 
+    CHECK_COMPILER_FLAG(Wmisleading-indentation)
+
     #Check if -Wmissing-prototypes is available.
     CHECK_COMPILER_FLAG(Wmissing-prototypes)
+
+    CHECK_COMPILER_FLAG(Wnested-externs)
+
+    CHECK_COMPILER_FLAG(Wno-type-limits)
+
+    CHECK_COMPILER_FLAG(Wno-unknown-pragmas)
+
+    CHECK_COMPILER_FLAG(Wnull-dereference)
+
+    CHECK_COMPILER_FLAG(Wold-style-declaration)
+
+    CHECK_COMPILER_FLAG(Wrestrict)
+
+    CHECK_COMPILER_FLAG(Wwrite-strings)
 
     #Check if -Wnormalized=id is available.
     CHECK_COMPILER_FLAG(Wnormalized=id)
